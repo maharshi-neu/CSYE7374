@@ -3,12 +3,90 @@ package crypto
 import java.math.BigInteger
 import scala.util.Random
 
+/**
+ * Class to represent a prime number.
+ *
+ * @param x the value of the prime number.
+ */
 case class Prime(x: BigInt) extends AnyVal {
-  def validate: Boolean = Primes.isPrime(x)
+  /**
+   * Validate whether this number really is prime.
+   *
+   * @return true if this number is prime.
+   */
+  def validate: Boolean = x.intValue == 2 || {
+    val max = math.sqrt(x.toDouble)
+    val candidates: List[Prime] = Primes.primes(p => p.toDouble < max).toList
+    val factors: List[Prime] = candidates filter (f => x % f.x == 0)
+    factors.toList.isEmpty
+  }
+
+  /**
+   * Get the remainder from the division y/x.
+   *
+   * @param y a BigInt.
+   * @return y % x.
+   */
+  def remainder(y: BigInt): BigInt = y % x
+
+  /**
+   * Get the value of this prime.
+   *
+   * @return x.
+   */
+  def toBigInt: BigInt = x
+
+  def toDouble: Double = x.toDouble
+
+  /**
+   * Optionally get the value of this prime as a Long.
+   *
+   * @return Some(x) if it fits as a Long, otherwise None.
+   */
+  def toLong: Option[Long] = if (x.abs < Long.MaxValue) Some(x.toLong) else None
+
+
+  /**
+   * Optionally get the value of this prime as an Int.
+   *
+   * @return Some(x) if it fits as an Int, otherwise None.
+   */
+  def toInt: Option[Int] = if (x.abs < Int.MaxValue) Some(x.toInt) else None
+
+  /**
+   * Get the next prime number after this one.
+   *
+   * @return a Prime which is greater than this.
+   */
+  def next: Prime = {
+    var d = x + 2
+    while (!Primes.isProbablePrime(d)) d = d + 2
+    Prime(d)
+  }
+}
+
+object Prime {
+  /**
+   * Method to create a Prime from a String.
+   *
+   * @param x the String.
+   * @return a Prime whose value is the String.
+   */
+  def apply(x: String): Prime = Prime(BigInt(x))
+
+  def create(x: BigInt): Option[Prime] = if (Primes.isProbablePrime(x)) Some(Prime(x)) else None
 }
 
 object Primes {
-  def isPrime(x: BigInt): Boolean = MillerRabin.miller_rabin(x)
+  def isProbablePrime(x: BigInt): Boolean = MillerRabin.miller_rabin(x)
+
+  def primes(f: Prime => Boolean): LazyList[Prime] = {
+    def all(p: Prime): LazyList[Prime] = if (f(p)) (p #:: all(p.next)) else LazyList.empty
+
+    Prime(2) #:: all(Prime(3))
+  }
+
+  def allPrimes: LazyList[Prime] = primes(_ => true)
 }
 
 /**
