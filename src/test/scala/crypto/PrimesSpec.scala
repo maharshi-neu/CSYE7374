@@ -10,9 +10,20 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Prime"
 
   it should "isProbablePrime" in {
+    Prime.isProbablePrime(2) shouldBe true
     Prime.isProbablePrime(7) shouldBe true
-    Prime.isProbablePrime(7919) shouldBe true
+    Prime.isProbablePrime(8) shouldBe false
+    Prime.isProbablePrime(11) shouldBe true
     Prime.isProbablePrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
+  }
+
+  it should "isProbableOddPrime" in {
+    // It's OK to call this method on 2 (but not any other even number).
+    Prime.isProbableOddPrime(2) shouldBe true
+    Prime.isProbableOddPrime(7) shouldBe true
+    Prime.isProbableOddPrime(11) shouldBe true
+    Prime.isProbableOddPrime(7919) shouldBe true
+    Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
 
   it should "validate" in {
@@ -21,8 +32,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     (Prime(7) validate) shouldBe true
     (Prime(120) validate) shouldBe false
     (Prime(7919) validate) shouldBe true
-    // This next currently takes too long
-    //    (Prime("35742549198872617291353508656626642567") validate) shouldBe true
   }
 
   it should "next" in {
@@ -60,8 +69,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.createMersennePrime(14) map (_.validate) shouldBe None
     Prime.createMersennePrime(15) map (_.validate) shouldBe None
     Prime.createMersennePrime(16) map (_.validate) shouldBe None
-    // NOTE: the following takes too long.
-    //    Prime.createMersennePrime(17) map (_.validate) shouldBe Some(true)
+    // NOTE: see PrimesFunctionalSpec for the next in the series.
   }
 
   it should "get first 100 primes" in {
