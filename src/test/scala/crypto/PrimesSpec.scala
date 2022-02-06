@@ -89,6 +89,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "test MillerRabin" in {
+    MillerRabin.millerRabinTester("test", "7919") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549881") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549887") shouldBe "COMPOSITE"
   }

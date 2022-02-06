@@ -1,6 +1,6 @@
 package crypto
 
-import crypto.Primes.{allPrimes, carmichael, standardPrimes}
+import crypto.Primes.{allPrimes, carmichael, hundredPrimes}
 
 import java.math.BigInteger
 import scala.collection.SortedSet
@@ -141,7 +141,7 @@ object Prime {
    * @param x an odd BigInt.
    * @return true if x is probably prime.
    */
-  def isProbableOddPrime(x: BigInt): Boolean = standardPrimes.contains(Prime(x)) || (x <= 7 || !hasSmallFactor(x)) && !carmichael.contains(x) && MillerRabin.isProbablePrime(x)
+  def isProbableOddPrime(x: BigInt): Boolean = hundredPrimes.contains(Prime(x)) || (x <= 7 || !hasSmallFactor(x)) && !carmichael.contains(x) && MillerRabin.isProbablePrime(x)
 
   /**
    * Method to determine if x is a probable prime.
@@ -165,7 +165,7 @@ object Primes {
   def probablePrimes(f: Prime => Boolean): LazyList[Prime] = {
     def inner(p: Prime): LazyList[Prime] = if (f(p)) p #:: inner(p.next) else LazyList.empty
 
-    standardPrimes.to(LazyList).filter(f) ++ inner(Prime(prime101))
+    hundredPrimes.to(LazyList).filter(f) ++ inner(Prime(prime101))
   }
 
   /**
@@ -178,7 +178,7 @@ object Primes {
   /**
    * The first 100 true primes.
    */
-  val standardPrimes: SortedSet[Prime] =
+  val hundredPrimes: SortedSet[Prime] =
     SortedSet(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
       283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541).map(Prime(_))
 
@@ -199,61 +199,54 @@ object Primes {
 object MillerRabin {
   // This code is from link shown below: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
   def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
-    var d: BigInt = 0
-    var s: BigInt = 0
-    var a_to_power: BigInt = 0
-    d = n - 1
-    s = 0
-    while (d % 2 == 0) {
-      d >>= 1
-      s += 1
-    }
-    a_to_power = a.modPow(d, n)
-    if (a_to_power == 1) {
-      return true
-    }
-    for (_ <- 1 to s.intValue) {
-      if (a_to_power == n - 1) {
-        return true
-      }
-      a_to_power = (a_to_power * a_to_power) % n
+    val (d, s) = decompose(n)
+    var a_to_power: BigInt = a.modPow(d, n)
+    if (a_to_power == 1) return true
+    else for (_ <- 1 to s) {
+      if (a_to_power == n - 1) return true
+      else a_to_power = (a_to_power * a_to_power) % n
     }
     a_to_power == n - 1
   }
 
   def isProbablePrime(n: BigInt): Boolean = {
-    val k: Int = 20
-    for (_: Int <- 1 to k) {
+    val k = 20
+    for (_ <- 1 to k) {
+      val rand = new Random()
       var a: BigInt = 0
-      val rand: scala.util.Random = new Random(new java.util.Random())
       while (a == 0) {
-        a = new BigInt(new BigInteger("" + (rand.nextDouble * n.doubleValue).toInt))
+        a = BigInt("" + (rand.nextDouble * n.doubleValue).toInt)
       }
-      if (!miller_rabin_pass(a, n)) {
-        return false
-      }
+      if (!miller_rabin_pass(a, n)) return false
     }
     true
   }
 
-  def millerRabinTester(action: String, number: String): String = {
-    if (action == "test") {
+  def millerRabinTester(action: String, number: String): String =
+    if (action == "test")
       if (isProbablePrime(new BigInt(new BigInteger(number)))) "PRIME"
       else "COMPOSITE"
-    }
     else if (action == "genprime") {
       var nbits: BigInt = 0
       var p: BigInt = 0
       nbits = new BigInt(new BigInteger(number))
       var rand: java.util.Random = new java.util.Random(System.currentTimeMillis())
       p = new BigInt(new BigInteger(nbits.intValue, rand))
-      while (!isProbablePrime(p) || p % 2 == 0 || p % 3 == 0 || p % 5 == 0 || p % 7 == 0) {
+      while (!isProbablePrime(p) || (2 |> p) || (3 |> p) || (5 |> p) || (7 |> p)) {
         rand = new java.util.Random(System.currentTimeMillis())
         p = new BigInt(new BigInteger(nbits.intValue, rand))
       }
       p.toString()
     }
-    else
-      s"invalid action: $action"
+    else s"invalid action: $action"
+
+  private def decompose(n: BigInt) = {
+    var d: BigInt = n - 1
+    var s: Int = 0
+    while (2 |> d) {
+      d >>= 1
+      s += 1
+    }
+    (d, s)
   }
 }
