@@ -16,15 +16,30 @@ import scala.util.Random
  */
 case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   /**
+   * Get the length of this prime in bits.
+   *
+   * @return the length in bits.
+   */
+  def bits: Int = x.bigInteger.bitLength()
+
+  /**
+   * Method to determine if this is indeed a probably prime.
+   *
+   * @return the result of Prime.isProbablePrime(x).
+   */
+  def isProbablePrime: Boolean = Prime.isProbablePrime(x)
+
+  /**
    * Validate whether this number really is prime.
+   *
+   * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
    *
    * @return true if this number is prime.
    */
-  def validate: Boolean = Prime.isProbablePrime(x) && {
+  def validate: Boolean = isProbablePrime && {
     val max = math.sqrt(x.toDouble)
-    val candidates: List[Prime] = Primes.probablePrimes(p => p.toDouble <= max).toList
-    val factors: List[Prime] = candidates filter (f => x % f.x == 0)
-    factors.isEmpty
+    val candidates = Primes.probablePrimes(p => p.toDouble <= max)
+    !(candidates exists (f => x % f.x == 0))
   }
 
   /**
@@ -66,6 +81,8 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   /**
    * Get the next probable prime number after this one.
    *
+   * Equivalent to Prime(x.bigInteger.nextProbablePrime())
+   *
    * @return a probable prime which is greater than this.
    */
   def next: Prime = {
@@ -80,9 +97,26 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   }
 
   def compare(that: Prime): Int = x.compare(that.x)
+
+  override def toString: String = Prime.formatWithCommas(x)
 }
 
 object Prime {
+  val commaFormatter = new java.text.DecimalFormat("#,###")
+
+  def formatWithCommas(x: BigInt): String = commaFormatter.format(x)
+
+  /**
+   * Method to construct a new Prime, provided that it is positive.
+   *
+   * NOTE there is no check at all as to whether the result is actually a prime number.
+   *
+   * @param x a positive BigInt.
+   * @return a Prime whose value may or may not be a Prime number.
+   * @throws PrimeException if x is not positive.
+   */
+  def apply(x: BigInt): Prime = if (x > 0) new Prime(x) else throw PrimeException("prime must be positive")
+
   /**
    * Method to create a (probable) Prime from a String.
    *
@@ -97,7 +131,12 @@ object Prime {
    * @param x a BigInt.
    * @return an Option[Prime]
    */
-  def create(x: BigInt): Option[Prime] = if (isProbablePrime(x)) Some(Prime(x)) else None
+  def create(x: BigInt): Option[Prime] = optionalPrime(Prime(x))
+
+  /**
+   * Function to lift a Prime to an Option[Prime] whose values depends on the result of invoking isProbablePrime.
+   */
+  val optionalPrime: Prime => Option[Prime] = FP.optional[Prime](_.isProbablePrime)
 
   /**
    * Create an (optional) Mersenne Prime of form (2 to the power of the ith prime) - 1.
@@ -138,10 +177,13 @@ object Prime {
    * We use the MillerRabin test on x.
    * NOTE: we assume that x is odd.
    *
+   * More or less the equivalent of x.bigInteger.isProbablePrime(100).
+   *
    * @param x an odd BigInt.
    * @return true if x is probably prime.
    */
-  def isProbableOddPrime(x: BigInt): Boolean = hundredPrimes.contains(Prime(x)) || (x <= 7 || !hasSmallFactor(x)) && !carmichael.contains(x) && MillerRabin.isProbablePrime(x)
+  def isProbableOddPrime(x: BigInt): Boolean =
+    hundredPrimes.contains(Prime(x)) || (x <= 7 || !hasSmallFactor(x)) && !carmichael.contains(x) && MillerRabin.isProbablePrime(x)
 
   /**
    * Method to determine if x is a probable prime.
@@ -156,16 +198,35 @@ object Prime {
 
 object Primes {
   /**
-   * Method to yield a lazy list of probable primes as long as they satisfy the predicate f.
-   * As soon as f returns false, the lazy list terminates.
+   * Random source.
+   */
+  val random: java.util.Random = new java.util.Random()
+
+  /**
+   * The measure of certainty that we use.
+   * Probability of a false positive prime is 2.pow(-100).
+   */
+  val CERTAINTY = 100
+
+  /**
+   * Method to generate a random prime of size bits bits.
+   *
+   * @param bits the size of the resulting Prime in bits.
+   * @return a Prime number with certainly 2.pow(-100).
+   */
+  def randomPrime(bits: Int): Prime = Prime(new BigInteger(bits, CERTAINTY, random))
+
+  /**
+   * Method to yield a list of probable primes as long as they satisfy the predicate f.
    *
    * @param f the predicate to be applied to each candidate prime.
-   * @return a LazyList[Prime] where each element satisfies the predicate f.
+   * @return a List[Prime] where each element satisfies the predicate f.
+   * @throws PrimeException if f does not yield finite list.
    */
-  def probablePrimes(f: Prime => Boolean): LazyList[Prime] = {
-    def inner(p: Prime): LazyList[Prime] = if (f(p)) p #:: inner(p.next) else LazyList.empty
-
-    hundredPrimes.to(LazyList).filter(f) ++ inner(Prime(prime101))
+  def probablePrimes(f: Prime => Boolean): List[Prime] = {
+    val result = probablePrimesLazy(f)
+    if (result.knownSize == -1) result.toList
+    else throw PrimeException("probablyPrimes: filter does not yield finite list")
   }
 
   /**
@@ -173,7 +234,13 @@ object Primes {
    *
    * @return a LazyList[Prime].
    */
-  lazy val allPrimes: LazyList[Prime] = probablePrimes(_ => true)
+  lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
+
+  /**
+   * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
+   */
+  val carmichael: SortedSet[BigInt] =
+    SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
 
   /**
    * The first 100 true primes.
@@ -185,10 +252,17 @@ object Primes {
   private val prime101 = 547
 
   /**
-   * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
+   * Method to yield a lazy list of probable primes as long as they satisfy the predicate f.
+   * As soon as f returns false, the lazy list terminates.
+   *
+   * @param f the predicate to be applied to each candidate prime.
+   * @return a LazyList[Prime] where each element satisfies the predicate f.
    */
-  val carmichael: SortedSet[BigInt] =
-    SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+  private def probablePrimesLazy(f: Prime => Boolean): LazyList[Prime] = {
+    def inner(p: Prime): LazyList[Prime] = if (f(p)) p #:: inner(p.next) else LazyList.empty
+
+    hundredPrimes.to(LazyList).filter(f) ++ inner(Prime(prime101))
+  }
 }
 
 /**
@@ -209,6 +283,15 @@ object MillerRabin {
     a_to_power == n - 1
   }
 
+  /**
+   * Method (originally called miller_rabin) from literateprograms with slight improvements for elegance.
+   *
+   * NOTE: this is equivalent (I believe) to n.bigInteger.isProbablePrime(40),
+   * i.e. there's a one-in-a-trillion chance that we get false positive.
+   *
+   * @param n a BigInt.
+   * @return true if n is a probable prime with certainty approximately 2.pow(-40)
+   */
   def isProbablePrime(n: BigInt): Boolean = {
     val k = 20
     for (_ <- 1 to k) {
@@ -250,3 +333,5 @@ object MillerRabin {
     (d, s)
   }
 }
+
+case class PrimeException(str: String) extends Exception(str)

@@ -1,13 +1,18 @@
 package crypto
 
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 
 class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "Prime"
+
+  it should "validate random primes" in {
+    val bits = 40
+    val prime = Primes.randomPrime(bits)
+    prime.bits shouldBe bits
+    println(prime)
+    prime.validate shouldBe true
+  }
 
   // NOTE: This takes much too long.
   it should "validate" in {
