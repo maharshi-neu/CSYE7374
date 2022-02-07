@@ -49,8 +49,11 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   def Lucas: Boolean = {
     val xMinus1: BigInt = x - 1
     val factors = Prime.factors(xMinus1)
-    val randomNumbers = RandomState.lazyList(System.nanoTime()).map(_.value(xMinus1) + 1) take 50
-    randomNumbers.exists(Lucas(xMinus1, factors)(_))
+    val as: Seq[BigInt] =
+      if (xMinus1 < 20) Range(2, x.toInt).map(BigInt(_))
+      else RandomState.lazyList(System.nanoTime()).map(_.value(xMinus1 - 1) + 2) take 20
+    // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
+    as.exists(Lucas(xMinus1, factors)(_))
   }
 
   /**
