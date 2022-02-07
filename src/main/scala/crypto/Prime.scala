@@ -25,9 +25,53 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   /**
    * Method to determine if this is indeed a probably prime.
    *
+   * NOTE: ideally, we should be able to substitute Lucas here.
+   *
    * @return the result of Prime.isProbablePrime(x).
    */
   def isProbablePrime: Boolean = Prime.isProbablePrime(x)
+
+  /**
+   * This yields the value of a.pow(p-1) mod p.
+   *
+   * @param a a BigInt which is not divisible by p.
+   * @return a BigInt which, if this is prime, should be 1 for all 0 < a < p.
+   */
+  def fermat(a: BigInt): BigInt = modPow(a, x - 1)
+
+  /**
+   * Method to apply the Lucas test of primality.
+   *
+   * TODO determine why this is so slow compared with Miller-Rabin.
+   *
+   * @return true if for any random value a such that 0 < a < x - 1, Lucas(x-1, factors)(a) is true where factors are the prime factors of x - 1.
+   */
+  def Lucas: Boolean = {
+    val xMinus1: BigInt = x - 1
+    val factors = Prime.factors(xMinus1)
+    val randomNumbers = RandomState.lazyList(System.nanoTime()).map(_.value(xMinus1) + 1) take 50
+    randomNumbers.exists(Lucas(xMinus1, factors)(_))
+  }
+
+  /**
+   * Method to apply the Lucas test of primality.
+   *
+   * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
+   * @param qs the prime factors of xMinus1.
+   * @param a  an arbitrary BigInt such that 0 < a < c.
+   * @return fermat(a) && doLucas(c, qs)(a)
+   */
+  def Lucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = fermat(a) == 1 && doLucas(c, qs)(a)
+
+  /**
+   * Return a Boolean which is true if a.pow(xMinus1/q) != 1 mod x for all q where q is a prime factor of xMinus1.
+   *
+   * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
+   * @param qs the prime factors of xMinus1.
+   * @param a  an arbitrary BigInt.
+   * @return true if for all q, a.pow(c/q) != 1 mod x
+   */
+  private def doLucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = qs.forall(q => modPow(a, c / q.x) != 1)
 
   /**
    * Validate whether this number really is prime.
@@ -36,11 +80,7 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if this number is prime.
    */
-  def validate: Boolean = isProbablePrime && {
-    val max = math.sqrt(x.toDouble)
-    val candidates = Primes.probablePrimes(p => p.toDouble <= max)
-    !(candidates exists (f => x % f.x == 0))
-  }
+  def validate: Boolean = isProbablePrime && Prime.factors(x).isEmpty
 
   /**
    * Get the remainder from the division y/x.
@@ -99,9 +139,26 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
   def compare(that: Prime): Int = x.compare(that.x)
 
   override def toString: String = Prime.formatWithCommas(x)
+
+  private def modPow(a: BigInt, n: BigInt): BigInt = a.bigInteger.modPow(n, x)
 }
 
 object Prime {
+
+  /**
+   * Method to yield the prime factors of x.
+   * NOTE that this method can be quite expensive.
+   *
+   * @param x a positive BigInt.
+   * @return a Seq[Prime]
+   */
+  def factors(x: BigInt): Seq[Prime] = if (x > 0) {
+    val max = math.sqrt(x.toDouble)
+    val candidates = Primes.probablePrimes(p => p.toDouble <= max)
+    candidates filter (f => x % f.x == 0)
+  }
+  else throw PrimeException(s"factors: x is not positive: $x")
+
   val commaFormatter = new java.text.DecimalFormat("#,###")
 
   def formatWithCommas(x: BigInt): String = commaFormatter.format(x)
@@ -193,7 +250,6 @@ object Prime {
    * @return true if x is probably prime.
    */
   def isProbablePrime(x: BigInt): Boolean = (x == 2 || !(2 |> x)) && isProbableOddPrime(x)
-
 }
 
 object Primes {

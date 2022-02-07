@@ -26,6 +26,24 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
 
+  it should "fermat" in {
+    Prime(7).fermat(2) shouldBe 1
+    Prime(71).fermat(9) shouldBe 1
+  }
+
+  it should "implement Lucas for 7 and 71" in {
+    Prime(7).Lucas shouldBe true
+    Prime(71).Lucas shouldBe true
+  }
+
+  it should "implement Lucas()" in {
+    val p = Prime(71)
+    val pMinus1: BigInt = p.x - 1
+    val factors = Prime.factors(pMinus1)
+    p.Lucas(pMinus1, factors)(17) shouldBe false
+    p.Lucas(pMinus1, factors)(11) shouldBe true
+  }
+
   it should "validate" in {
     (Prime(2) validate) shouldBe true
     (Prime(4) validate) shouldBe false
@@ -83,7 +101,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "get primes < 1000" in {
-    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.x < 1000).toList
+    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.x < 1000)
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }
