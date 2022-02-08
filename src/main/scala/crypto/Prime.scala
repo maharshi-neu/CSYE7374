@@ -47,34 +47,47 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
    * @return true if for any random value a such that 0 < a < x - 1, Lucas(x-1, factors)(a) is true where factors are the prime factors of x - 1.
    */
   def Lucas: Boolean = {
-    val xMinus1: BigInt = x - 1
-    val factors = Prime.factors(xMinus1)
-    val as: Seq[BigInt] =
-      if (xMinus1 < 20) Range(2, x.toInt).map(BigInt(_))
-      else RandomState.lazyList(System.nanoTime()).map(_.value(xMinus1 - 1) + 2) take 20
+    val factors = Prime.factors(x - 1)
+    val as: Seq[BigInt] = Prime.getRandomValues(x)
     // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
-    as.exists(Lucas(xMinus1, factors)(_))
+    as.exists(Lucas(x - 1, factors)(_))
   }
 
   /**
    * Method to apply the Lucas test of primality.
    *
-   * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
-   * @param qs the prime factors of xMinus1.
+   * @param c  a composite number (typically one less than this prime).
+   * @param qs the prime factors of c.
    * @param a  an arbitrary BigInt such that 0 < a < c.
    * @return fermat(a) && doLucas(c, qs)(a)
    */
   def Lucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = fermat(a) == 1 && doLucas(c, qs)(a)
 
   /**
-   * Return a Boolean which is true if a.pow(xMinus1/q) != 1 mod x for all q where q is a prime factor of xMinus1.
+   * NOTE: This will yield only one of the primitive roots, the one where k = 1.
    *
-   * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
-   * @param qs the prime factors of xMinus1.
-   * @param a  an arbitrary BigInt.
-   * @return true if for all q, a.pow(c/q) != 1 mod x
+   * https://homepages.math.uic.edu/~leon/mcs425-s08/handouts/PrimitiveElements.pdf
+   *
+   * @return
    */
-  private def doLucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = qs.forall(q => modPow(a, c / q.x) != 1)
+  def primitiveRoot: BigInt = {
+    val as: Seq[BigInt] = Prime.getRandomValues(x)
+    as.find(a => fermat(a) == 1 && testPrimitiveRoot(a)) match {
+      case Some(a) => a
+      case None => throw PrimeException(s"primitiveRoot: failed to find primitive root for $this (is it prime?)")
+    }
+  }
+
+  /**
+   * Method to test whether a BigInt is a primitive root of this Prime.
+   *
+   * @param a a BigInt: the candidate primitive root.
+   * @return true if a is a primitive root of this.
+   */
+  def testPrimitiveRoot(a: BigInt): Boolean = toIntOption match {
+    case Some(p) => (2 until p - 1).forall(j => modPow(a, j) != 1)
+    case None => throw PrimeException(s"testPrimitiveRoot: this prime is too big")
+  }
 
   /**
    * Validate whether this number really is prime.
@@ -112,14 +125,14 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return Some(x) if it fits as a Long, otherwise None.
    */
-  def toLong: Option[Long] = if (x.abs < Long.MaxValue) Some(x.toLong) else None
+  def toLongOption: Option[Long] = if (x.abs < Long.MaxValue) Some(x.toLong) else None
 
   /**
    * Optionally get the value of this prime as an Int.
    *
    * @return Some(x) if it fits as an Int, otherwise None.
    */
-  def toInt: Option[Int] = if (x.abs < Int.MaxValue) Some(x.toInt) else None
+  def toIntOption: Option[Int] = if (x.abs < Int.MaxValue) Some(x.toInt) else None
 
   /**
    * Get the next probable prime number after this one.
@@ -143,7 +156,22 @@ case class Prime(x: BigInt) extends AnyVal with Ordered[Prime] {
 
   override def toString: String = Prime.formatWithCommas(x)
 
-  private def modPow(a: BigInt, n: BigInt): BigInt = a.bigInteger.modPow(n, x)
+  def modPow(a: BigInt, n: BigInt): BigInt = a.bigInteger.modPow(n, x)
+
+  /**
+   * Return a Boolean which is true if a.pow(c/q) != 1 mod x for all q where q is a prime factor of c.
+   *
+   * CONSIDER renaming this to something more descriptive.
+   *
+   * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
+   * @param qs the prime factors of c.
+   * @param a  an arbitrary BigInt.
+   * @return true if for all q, a.pow(c/q) != 1 mod x
+   */
+  private def doLucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = qs.forall(q => {
+    val compositeFactor = c / q.x
+    modPow(a, compositeFactor) != 1
+  })
 }
 
 object Prime {
@@ -253,6 +281,13 @@ object Prime {
    * @return true if x is probably prime.
    */
   def isProbablePrime(x: BigInt): Boolean = (x == 2 || !(2 |> x)) && isProbableOddPrime(x)
+
+  private def getRandomValues(p: BigInt): Seq[BigInt] = {
+    val xMinus1 = p - 1
+    val n = 20
+    if (xMinus1 < n) Range(2, p.toInt).map(BigInt(_))
+    else RandomState.lazyList(System.nanoTime()).map(_.value(xMinus1 - 1) + 2) take n
+  }
 }
 
 object Primes {

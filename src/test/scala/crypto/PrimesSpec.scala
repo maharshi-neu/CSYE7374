@@ -44,6 +44,37 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     p.Lucas(pMinus1, factors)(11) shouldBe true
   }
 
+  it should "implement testPrimitiveRoot" in {
+    Prime(5).testPrimitiveRoot(2) shouldBe true
+    Prime(7).testPrimitiveRoot(2) shouldBe false
+    Prime(7).testPrimitiveRoot(3) shouldBe true
+    Prime(11).testPrimitiveRoot(2) shouldBe true
+    Prime(13).testPrimitiveRoot(2) shouldBe true
+    Prime(13).testPrimitiveRoot(6) shouldBe true
+    Prime(13).testPrimitiveRoot(7) shouldBe true
+    Prime(13).testPrimitiveRoot(11) shouldBe true
+    Prime(13).testPrimitiveRoot(3) shouldBe false
+    Prime(23).testPrimitiveRoot(2) shouldBe false
+    Prime(23).testPrimitiveRoot(3) shouldBe false
+    Prime(23).testPrimitiveRoot(5) shouldBe true
+    Prime(23).testPrimitiveRoot(7) shouldBe true
+    Prime(23).testPrimitiveRoot(10) shouldBe true
+    Prime(23).testPrimitiveRoot(15) shouldBe true
+    Prime(23).testPrimitiveRoot(17) shouldBe true
+    Prime(23).testPrimitiveRoot(20) shouldBe true
+    Prime(23).testPrimitiveRoot(21) shouldBe true
+  }
+
+  it should "implement primitiveRoot" in {
+    Prime(5).primitiveRoot shouldBe BigInt(2)
+    Prime(7).primitiveRoot shouldBe BigInt(3)
+    // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
+    Prime(13).primitiveRoot shouldBe BigInt(2)
+    val root23 = Prime(23).primitiveRoot
+    println(root23)
+    Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(20), BigInt(21)) contains root23 shouldBe true
+  }
+
   it should "validate" in {
     (Prime(2) validate) shouldBe true
     (Prime(4) validate) shouldBe false
@@ -66,6 +97,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "create Mersenne prime" in {
+    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
     Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
     Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
     Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
@@ -73,21 +105,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
     Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
     Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
-    //    println(Prime.mersenneNumber(8))
-    Prime.createMersennePrime(8) map (_.validate) shouldBe None
-    //    println(Prime.mersenneNumber(9))
-    Prime.createMersennePrime(9) map (_.validate) shouldBe None
-    Prime.createMersennePrime(10) map (_.validate) shouldBe Some(true)
-    //    println(Prime.mersenneNumber(11))
-    Prime.createMersennePrime(11) map (_.validate) shouldBe None
-    //    println(Prime.mersenneNumber(12))
-    Prime.createMersennePrime(12) map (_.validate) shouldBe None
-    //    println(Prime.mersenneNumber(13))
-    Prime.createMersennePrime(13) map (_.validate) shouldBe None
-    Prime.createMersennePrime(14) map (_.validate) shouldBe None
-    Prime.createMersennePrime(15) map (_.validate) shouldBe None
-    Prime.createMersennePrime(16) map (_.validate) shouldBe None
-    // NOTE: see PrimesFunctionalSpec for the next in the series.
   }
 
   it should "get first 100 primes" in {
