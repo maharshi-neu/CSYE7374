@@ -38,17 +38,15 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
 
   it should "encrypt" in {
     val target = DiffieHellmanMerkle(prime23, g)
-    target.encrypt(17)(target.secret(aliceKey, bobKey)) shouldBe bobKey
+    val secret = target.secret(aliceKey, bobKey)
+    target.encrypt(17)(secret) shouldBe 3
+
+    val ciphers = for (i <- 0 to 22) yield target.encrypt(i)(secret)
+    println(ciphers)
   }
 
   ignore should "decrypt" in {
     val target = DiffieHellmanMerkle(prime23, g)
-    target.decrypt(bobKey)(target.secret(aliceKey, bobKey)) shouldBe 17
-  }
-
-  it should "multInverse" in {
-    DiffieHellmanMerkle(Prime(11), 2).multInverse(3) shouldBe 4
-    DiffieHellmanMerkle(Prime(17), 3).multInverse(10) shouldBe 12
-    DiffieHellmanMerkle(prime23, 5).multInverse(18) shouldBe 9
+    target.decrypt(3)(target.secret(aliceKey, bobKey)) shouldBe 17
   }
 }

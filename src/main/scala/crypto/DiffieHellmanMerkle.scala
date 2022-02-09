@@ -25,7 +25,7 @@ case class DiffieHellmanMerkle(p: Prime, g: BigInt) {
     else throw PrimeException(s"secret: ab doesn't match ba")
   }
 
-  def multInverse(a: BigInt): BigInt = modPow(a)(p.x - 2)
+  def multInverse(a: BigInt): BigInt = modPow(a)(p.p - 2)
 
   private def modPow(base: BigInt)(key: BigInt) = p.modPow(base, key)
 }
