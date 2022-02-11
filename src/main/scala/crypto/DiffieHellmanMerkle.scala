@@ -7,6 +7,7 @@ package crypto
  * @param g a primitive root of p.
  */
 case class DiffieHellmanMerkle(p: Prime, g: BigInt) {
+  // NOTE we should probably replace validate with isProbablyPrime for performance reasons.
   require(p.validate, s"$p is not prime")
   require(p.testPrimitiveRoot(g), s"$g is not a primitive root of $p")
 

@@ -43,10 +43,31 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime(71).Lucas shouldBe true
   }
 
+  // This implementation (factors) is really slow and, worse, is wrong.
+  ignore should "implement factors" in {
+    Prime.factors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
+    //    Prime.factors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
+    Prime.factors(7894609062L) shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
+  }
+
+  it should "implement primeFactors" in {
+    Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
+    Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
+    Prime.primeFactors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
+    Prime.primeFactors(7894609062L) shouldBe Seq(2, 11411, 3, 67, 1721).map(Prime(_))
+  }
+
+  it should "implement primeFactorMultiplicity" in {
+    Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
+    Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
+    Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
+    Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
+  }
+
   it should "implement Lucas()" in {
     val p = Prime(71)
     val pMinus1: BigInt = p.p - 1
-    val factors = Prime.factors(pMinus1)
+    val factors = Prime.primeFactors(pMinus1)
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true
   }
@@ -97,7 +118,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     val g = 7
     val z = p17.modPow(g, 10)
     z shouldBe 2
-    BigInt(10).modInverse(17) shouldBe 12
     val y = BigInt(g).pow(10)
     y shouldBe BigInt(282475249L)
     val q = y / 17
@@ -128,6 +148,27 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   it should "create primes from Mersenne numbers" in {
     val xs = for (i <- Seq(2, 3, 5, 7, 13, 17, 19, 31)) yield Prime.isProbablePrime(Prime.mersenneNumber(Prime(i)))
     xs.forall(_ == true) shouldBe true
+  }
+
+  it should "create Mersenne numbers" in {
+    Prime.mersenneNumber(0) shouldBe 3 // 2^2 - 1
+    Prime.mersenneNumber(1) shouldBe 7 // 2^3 - 1
+    Prime.mersenneNumber(2) shouldBe 31 // 2^5 - 1
+    Prime.mersenneNumber(3) shouldBe 127 // 2^7 - 1
+    Prime.mersenneNumber(4) shouldBe 2047 // 2^11 - 1
+    Prime.mersenneNumber(5) shouldBe 8191 // 2^13 - 1
+    Prime.mersenneNumber(6) shouldBe 131071 // 2^17 - 1
+    Prime.mersenneNumber(7) shouldBe 524287 // 2^19 - 1
+    Prime.mersenneNumber(8) shouldBe 8388607
+    Prime.mersenneNumber(9) shouldBe 536870911
+    Prime.mersenneNumber(10) shouldBe 2147483647
+    Prime.mersenneNumber(11) shouldBe 137438953471L
+    Prime.mersenneNumber(12) shouldBe 2199023255551L
+    Prime.mersenneNumber(13) shouldBe 8796093022207L
+    Prime.mersenneNumber(14) shouldBe 140737488355327L
+    Prime.mersenneNumber(15) shouldBe 9007199254740991L
+    Prime.mersenneNumber(16) shouldBe 576460752303423487L
+    Prime.mersenneNumber(17) shouldBe 2305843009213693951L
   }
 
   it should "create Mersenne prime" in {

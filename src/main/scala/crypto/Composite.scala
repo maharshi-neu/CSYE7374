@@ -5,5 +5,5 @@ case class Composite(factors: Seq[Prime]) {
 }
 
 object Composite {
-  def apply(x: BigInt): Composite = Composite(Prime.factors(x))
+  def apply(x: BigInt): Composite = Composite(Prime.primeFactors(x))
 }

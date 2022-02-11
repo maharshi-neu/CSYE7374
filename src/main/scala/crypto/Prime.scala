@@ -3,6 +3,7 @@ package crypto
 import crypto.Primes.{allPrimes, carmichael, hundredPrimes}
 
 import java.math.BigInteger
+import scala.annotation.tailrec
 import scala.collection.SortedSet
 import scala.util.Random
 
@@ -58,7 +59,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @return true if for any random value a such that 0 < a < p - 1, Lucas(p-1, factors)(a) is true where factors are the prime factors of p - 1.
    */
   def Lucas: Boolean = {
-    val factors = Prime.factors(p - 1)
+    val factors = Prime.primeFactors(p - 1)
     val as: Seq[BigInt] = Prime.getRandomValues(p)
     // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
     as.exists(Lucas(p - 1, factors)(_))
@@ -107,7 +108,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if this number is prime.
    */
-  def validate: Boolean = isProbablePrime && Prime.factors(p).isEmpty
+  def validate: Boolean = isProbablePrime && Prime.primeFactors(p).forall(_ == this)
 
   /**
    * Get the remainder from the division x/p.
@@ -183,6 +184,17 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
   def modPow(a: BigInt, n: BigInt): BigInt = a.bigInteger.modPow(n, p)
 
   /**
+   * Method to determine if this Prime is coPrime to n.
+   * Recall that this class doesn't only have true prime members.
+   *
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @param n a BigInt.
+   * @return true or false.
+   */
+  def isCoprimeTo(n: BigInt): Boolean = p.bigInteger.gcd(n) == 1
+
+  /**
    * Return a Boolean which is true if a.pow(c/q) != 1 mod p for all q where q is a prime factor of c.
    *
    * CONSIDER renaming this to something more descriptive.
@@ -201,7 +213,73 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
 object Prime {
 
   /**
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @param n the number of copies to make.
+   * @param x the value to be copied.
+   * @tparam X the underlying type of the result.
+   * @return a List[X].
+   */
+  def fill[X](n: Int)(x: X): List[X] = {
+    @tailrec
+    def inner(r: List[X], l: Int): List[X] = if (l <= 0) r else inner(r :+ x, l - 1)
+
+    inner(Nil, n)
+  }
+
+  /**
+   * Method to yield the value of the Euler's Totient function for this Prime.
+   *
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @return a BigInt, which represents the number of elements less than p which are relatively prime to this.
+   */
+  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (r, f) =>
+    f match {
+      case (p, m) => r * (p.p - 1) * p.p.pow(m - 1)
+    }
+  }
+
+  /**
+   * Method to yield the prime factors (with repeated elements).
+   * NOTE that if x is prime, then the list returned consists of x (not sure why but that's how it's implemented in Scala 99).
+   *
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @return a Seq[Prime].
+   */
+  def primeFactors(x: BigInt): Seq[Prime] = for ((k, v) <- primeFactorMultiplicity(x).toSeq; z <- Prime.fill(v)(k)) yield z
+
+  /**
+   * Method to yield a Map of prime factors.
+   *
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @return a Map of Prime -=> Int where the Int represents the number of times the factor is multiplied.
+   */
+  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] = {
+    def factorCount(n: BigInt, p: Prime): (Int, Prime) =
+      if (n % p.p != 0) (0, Prime(n))
+      else factorCount(n / p.p, p) match {
+        case (c, d) => (c + 1, d)
+      }
+
+    def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
+      if (n.p == 1) Map()
+      else if (n.isProbablePrime) Map(n -> 1)
+      else {
+        val nps = ps.dropWhile(n.p % _.p != 0)
+        val (count, dividend) = factorCount(n.p, nps.head)
+        Map(nps.head -> count) ++ factorsR(dividend, nps.tail)
+      }
+
+    factorsR(Prime(x), allPrimes)
+  }
+
+  /**
    * Method to yield the prime factors of x.
+   * FIXME this doesn't work correctly.
+   *
    * NOTE that this method can be quite expensive.
    *
    * @param x a positive BigInt.
