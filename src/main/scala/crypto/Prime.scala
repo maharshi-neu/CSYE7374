@@ -213,21 +213,6 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
 object Prime {
 
   /**
-   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
-   *
-   * @param n the number of copies to make.
-   * @param x the value to be copied.
-   * @tparam X the underlying type of the result.
-   * @return a List[X].
-   */
-  def fill[X](n: Int)(x: X): List[X] = {
-    @tailrec
-    def inner(r: List[X], l: Int): List[X] = if (l <= 0) r else inner(r :+ x, l - 1)
-
-    inner(Nil, n)
-  }
-
-  /**
    * Method to yield the value of the Euler's Totient function for this Prime.
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
@@ -383,6 +368,21 @@ object Prime {
    * @return true if p is probably prime.
    */
   def isProbablePrime(p: BigInt): Boolean = (p == 2 || !(2 |> p)) && isProbableOddPrime(p)
+
+  /**
+   * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
+   *
+   * @param n the number of copies to make.
+   * @param x the value to be copied.
+   * @tparam X the underlying type of the result.
+   * @return a List[X].
+   */
+  private def fill[X](n: Int)(x: X): List[X] = {
+    @tailrec
+    def inner(r: List[X], l: Int): List[X] = if (l <= 0) r else inner(r :+ x, l - 1)
+
+    inner(Nil, n)
+  }
 
   private def getRandomValues(p: BigInt): Seq[BigInt] = {
     val pMinus1 = p - 1
