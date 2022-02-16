@@ -15,7 +15,7 @@ case class DiffieHellmanMerkle(p: Prime, g: BigInt) {
 
   def decrypt(cipher: BigInt)(secret: BigInt): BigInt = modPow(cipher)(multInverse(secret))
 
-  def keyExchange(privateKey: BigInt): BigInt = modPow(g)(privateKey)
+  def keyExchange(privateKey: BigInt): BigInt = if (privateKey > 0 && privateKey < p.p) modPow(g)(privateKey) else throw PrimeException("privateKey must be positive and less than prime number")
 
   def getSecret(receivedKey: BigInt)(privateKey: BigInt): BigInt = modPow(receivedKey)(privateKey)
 
