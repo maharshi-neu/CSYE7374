@@ -22,7 +22,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return the length in bits.
    */
-  def bits: Int = p.bigInteger.bitLength()
+  def bits: Int = p.bitLength
 
   /**
    * Determine the multiplicative inverse of a, modulo this prime.
@@ -181,7 +181,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @param n a BigInt representing the power to which a will be raised.
    * @return the value of a.pow(n) mod p.
    */
-  def modPow(a: BigInt, n: BigInt): BigInt = a.bigInteger.modPow(n, p)
+  def modPow(a: BigInt, n: BigInt): BigInt = a.modPow(n, p)
 
   /**
    * Method to determine if this Prime is coPrime to n.
@@ -192,7 +192,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @param n a BigInt.
    * @return true or false.
    */
-  def isCoprimeTo(n: BigInt): Boolean = p.bigInteger.gcd(n) == 1
+  def isCoprimeTo(n: BigInt): Boolean = p.gcd(n) == 1
 
   /**
    * Return a Boolean which is true if a.pow(c/q) != 1 mod p for all q where q is a prime factor of c.
@@ -352,7 +352,7 @@ object Prime {
    * We use the MillerRabin test on p.
    * NOTE: we assume that p is odd.
    *
-   * More or less the equivalent of p.bigInteger.isProbablePrime(100).
+   * More or less the equivalent of p.isProbablePrime(100).
    *
    * @param p an odd BigInt.
    * @return true if p is probably prime.
@@ -482,7 +482,7 @@ object MillerRabin {
   /**
    * Method (originally called miller_rabin) from literateprograms with slight improvements for elegance.
    *
-   * NOTE: this is equivalent (I believe) to n.bigInteger.isProbablePrime(40),
+   * NOTE: this is equivalent (I believe) to n.isProbablePrime(40),
    * i.e. there's a one-in-a-trillion chance that we get false positive.
    *
    * @param n a BigInt.
