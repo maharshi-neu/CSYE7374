@@ -2,6 +2,7 @@ package crypto
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.language.postfixOps
 
 class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
@@ -9,7 +10,7 @@ class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
   behavior of "Prime"
 
   it should "validate random primes" in {
-    val bits = 40
+    val bits = 60
     val prime = Primes.randomPrime(bits)
     prime.bits shouldBe bits
     println(prime)

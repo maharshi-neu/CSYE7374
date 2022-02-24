@@ -353,6 +353,7 @@ object Prime {
    * NOTE: we assume that p is odd.
    *
    * More or less the equivalent of p.isProbablePrime(100).
+   * The performance appears to be similar
    *
    * @param p an odd BigInt.
    * @return true if p is probably prime.
@@ -397,6 +398,8 @@ object Primes {
    * Random source.
    */
   val random: java.util.Random = new java.util.Random()
+
+  def bigInts(x: BigInt): LazyList[BigInt] = x #:: bigInts(x + 1)
 
   /**
    * The measure of certainty that we use.
