@@ -1,6 +1,6 @@
 package crypto
 
-import crypto.Primes.{allPrimes, carmichael, hundredPrimes}
+import crypto.Primes.{allPrimes, bigInts, carmichael, hundredPrimes}
 
 import java.math.BigInteger
 import scala.annotation.tailrec
@@ -14,7 +14,7 @@ import scala.util.Random
  *
  * NOTE: just because we have an instance of Prime does not mean that it is a prime number.
  *
- * @param p the value of the (possible) prime number.
+ * @param p the value of the (possible) prime number (should be greater than zero, although this is not checked)
  */
 case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
   /**
@@ -154,14 +154,16 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @return a probable prime which is greater than this.
    */
   def next: Prime = {
-    def tens(b: BigInt): LazyList[BigInt] = b #:: tens(b + 10)
+    // Lazy list of numbers greater than p, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
+    val ys: LazyList[BigInt] = bigInts(p + 1).filter { x => x == 2 || x == 5 ||
+      { val r = x % 10; r == 1 || r == 3 || r == 7 || r == 9 }
+    }
 
-    // Lazy list of numbers that could conceivably be primes: all numbers ending with 1, 3, 7, or 9.
-    val ys = for (y <- tens(p / 10 * 10); i <- Seq(1, 3, 7, 9)) yield y + i
-    // Lazy list of possible primes larger than p.
-    val xs = ys.dropWhile(_ <= p).dropWhile(!Prime.isProbableOddPrime(_))
+    // Lazy list of probable primes larger than p.
+    val xs = ys.filter(_.isProbablePrime(40))
+
     // Return the first probable prime.
-    Prime(xs.take(1).head)
+    Prime(xs.head)
   }
 
   /**
@@ -399,6 +401,12 @@ object Primes {
    */
   val random: java.util.Random = new java.util.Random()
 
+  /**
+   * Create a lazy list of BigInts starting with x.
+   *
+   * @param x the first BigInt that is required.
+   * @return a LazyList[BigInt] whose head is x.
+   */
   def bigInts(x: BigInt): LazyList[BigInt] = x #:: bigInts(x + 1)
 
   /**

@@ -37,6 +37,9 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
 
+  private val p1: Prime = Prime(1) // Not actually a prime number
+  private val p2: Prime = Prime(2)
+  private val p3: Prime = Prime(3)
   private val p5: Prime = Prime(5)
   private val p7: Prime = Prime(7)
   private val p11: Prime = Prime(11)
@@ -148,6 +151,10 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "next" in {
+    p1.next shouldBe p2
+    p2.next shouldBe p3
+    p3.next shouldBe p5
+    p5.next shouldBe p7
     p7.next shouldBe p11
     p11.next shouldBe p13
     p13.next shouldBe p17
