@@ -37,23 +37,23 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
 
-  private val p1: Prime = Prime(1) // Not actually a prime number
-  private val p2: Prime = Prime(2)
-  private val p3: Prime = Prime(3)
-  private val p5: Prime = Prime(5)
-  private val p7: Prime = Prime(7)
-  private val p11: Prime = Prime(11)
-  private val p13: Prime = Prime(13)
-  private val p17: Prime = Prime(17)
-  private val p23: Prime = Prime(23)
+  private val p0: Prime = Prime(1) // Not actually a prime number
+  private val p1: Prime = Primes.allPrimes.head // 2
+  private val p2: Prime = Primes.allPrimes(1) // 3
+  private val p3: Prime = Primes.allPrimes(2) // 5
+  private val p4: Prime = Primes.allPrimes(3) // 7
+  private val p5: Prime = Primes.allPrimes(4) // 11
+  private val p6: Prime = Primes.allPrimes(5) // 13
+  private val p7: Prime = Primes.allPrimes(6) // 17
+  private val p9: Prime = Primes.allPrimes(8) // 23
 
   it should "fermat" in {
-    p7.fermat(2) shouldBe 1
+    p4.fermat(2) shouldBe 1
     Prime(71).fermat(9) shouldBe 1
   }
 
   it should "implement Lucas for 7 and 71" in {
-    p7.Lucas shouldBe true
+    p4.Lucas shouldBe true
     Prime(71).Lucas shouldBe true
   }
 
@@ -87,50 +87,50 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "implement testPrimitiveRoot" in {
+    p3.testPrimitiveRoot(2) shouldBe true
+    p4.testPrimitiveRoot(2) shouldBe false
+    p4.testPrimitiveRoot(3) shouldBe true
     p5.testPrimitiveRoot(2) shouldBe true
-    p7.testPrimitiveRoot(2) shouldBe false
-    p7.testPrimitiveRoot(3) shouldBe true
-    p11.testPrimitiveRoot(2) shouldBe true
-    p13.testPrimitiveRoot(2) shouldBe true
-    p13.testPrimitiveRoot(6) shouldBe true
-    p13.testPrimitiveRoot(7) shouldBe true
-    p13.testPrimitiveRoot(11) shouldBe true
-    p13.testPrimitiveRoot(3) shouldBe false
-    p17.testPrimitiveRoot(5) shouldBe true
-    p17.testPrimitiveRoot(7) shouldBe true
-    p23.testPrimitiveRoot(2) shouldBe false
-    p23.testPrimitiveRoot(3) shouldBe false
-    p23.testPrimitiveRoot(5) shouldBe true
-    p23.testPrimitiveRoot(7) shouldBe true
-    p23.testPrimitiveRoot(10) shouldBe true
-    p23.testPrimitiveRoot(15) shouldBe true
-    p23.testPrimitiveRoot(17) shouldBe true
-    p23.testPrimitiveRoot(20) shouldBe true
-    p23.testPrimitiveRoot(21) shouldBe true
+    p6.testPrimitiveRoot(2) shouldBe true
+    p6.testPrimitiveRoot(6) shouldBe true
+    p6.testPrimitiveRoot(7) shouldBe true
+    p6.testPrimitiveRoot(11) shouldBe true
+    p6.testPrimitiveRoot(3) shouldBe false
+    p7.testPrimitiveRoot(5) shouldBe true
+    p7.testPrimitiveRoot(7) shouldBe true
+    p9.testPrimitiveRoot(2) shouldBe false
+    p9.testPrimitiveRoot(3) shouldBe false
+    p9.testPrimitiveRoot(5) shouldBe true
+    p9.testPrimitiveRoot(7) shouldBe true
+    p9.testPrimitiveRoot(10) shouldBe true
+    p9.testPrimitiveRoot(15) shouldBe true
+    p9.testPrimitiveRoot(17) shouldBe true
+    p9.testPrimitiveRoot(20) shouldBe true
+    p9.testPrimitiveRoot(21) shouldBe true
   }
 
   it should "implement primitiveRoot" in {
-    p5.primitiveRoot shouldBe BigInt(2)
-    p7.primitiveRoot shouldBe BigInt(3)
+    p3.primitiveRoot shouldBe BigInt(2)
+    p4.primitiveRoot shouldBe BigInt(3)
     // Why do we never get the other roots (6, 7, 11) here? Oh, duh, because it's less than 20 and so we go in sequence.
-    p13.primitiveRoot shouldBe BigInt(2)
-    val root23 = p23.primitiveRoot
+    p6.primitiveRoot shouldBe BigInt(2)
+    val root23 = p9.primitiveRoot
     println(root23)
     Seq(BigInt(5), BigInt(7), BigInt(10), BigInt(11), BigInt(14), BigInt(15), BigInt(17), BigInt(19), BigInt(20), BigInt(21)) contains root23 shouldBe true
   }
 
   it should "multiplicativeInverse" in {
-    p11.multiplicativeInverse(3) shouldBe 4
-    p11.multiplicativeInverse(4) shouldBe 3
-    p17.multiplicativeInverse(10) shouldBe 12
-    p17.multiplicativeInverse(12) shouldBe 10
-    p23.multiplicativeInverse(18) shouldBe 9
-    p23.multiplicativeInverse(9) shouldBe 18
+    p5.multiplicativeInverse(3) shouldBe 4
+    p5.multiplicativeInverse(4) shouldBe 3
+    p7.multiplicativeInverse(10) shouldBe 12
+    p7.multiplicativeInverse(12) shouldBe 10
+    p9.multiplicativeInverse(18) shouldBe 9
+    p9.multiplicativeInverse(9) shouldBe 18
   }
 
   ignore should "multiplicativeInverse2" in {
     val g = 7
-    val z = p17.modPow(g, 10)
+    val z = p7.modPow(g, 10)
     z shouldBe 2
     val y = BigInt(g).pow(10)
     y shouldBe BigInt(282475249L)
@@ -139,28 +139,28 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     q shouldBe BigInt(16616191L)
     r shouldBe BigInt(2)
     y.mod(17) shouldBe 2
-    p17.modPow(z, 12) shouldBe g
+    p7.modPow(z, 12) shouldBe g
   }
 
   it should "validate" in {
     (Prime(2) validate) shouldBe true
     (Prime(4) validate) shouldBe false
-    (p7 validate) shouldBe true
+    (p4 validate) shouldBe true
     (Prime(120) validate) shouldBe false
     (Prime(7919) validate) shouldBe true
   }
 
   it should "next" in {
+    p0.next shouldBe p1
     p1.next shouldBe p2
     p2.next shouldBe p3
-    p3.next shouldBe p5
-    p5.next shouldBe p7
-    p7.next shouldBe p11
-    p11.next shouldBe p13
-    p13.next shouldBe p17
+    p3.next shouldBe p4
+    p4.next shouldBe p5
+    p5.next shouldBe p6
+    p6.next shouldBe p7
     val p19 = Prime(19)
-    p17.next shouldBe p19
-    p19.next shouldBe p23
+    p7.next shouldBe p19
+    p19.next shouldBe p9
   }
 
   it should "create primes from Mersenne numbers" in {
