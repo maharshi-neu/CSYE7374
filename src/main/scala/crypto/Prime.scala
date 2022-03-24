@@ -396,10 +396,15 @@ object Prime {
 }
 
 object Primes {
+
   /**
-   * Random source.
+   * Method to yield the "prime counting function" aka "piApprox" for a given number.
+   * The result is an approximation to the number of primes not greater than x.
+   *
+   * @param x the ordinal position in the list of primes of the prime number required.
+   * @return an approximation to the kth prime number.
    */
-  val random: java.util.Random = new java.util.Random()
+  def piApprox(x: BigInt): Double = x.toDouble / math.log(x.toDouble)
 
   /**
    * Create a lazy list of BigInts starting with x.
@@ -457,6 +462,11 @@ object Primes {
       283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541).map(Prime(_))
 
   private val prime101 = 547
+
+  /**
+   * Random source.
+   */
+  private val random: java.util.Random = new java.util.Random()
 
   /**
    * Method to yield a lazy list of probable primes as long as they satisfy the predicate f.
