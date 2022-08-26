@@ -1,5 +1,0 @@
-package crypto
-
-object DecryptionTools {
-
-}
