@@ -9,12 +9,12 @@ class HistogramSpec extends AnyFlatSpec with should.Matchers {
     behavior of "Histogram"
 
     it should "comparer" in {
-        val histogram = Histogram(CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction))
+        val histogram = Histogram(CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction2))
         English.comparer(histogram) shouldBe 0.031 +- 0.004
     }
 
     it should "rotate" in {
-        val histogram = Histogram(CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction)).rotate(x => CaesarCipher.doShift(x, 1))
+        val histogram = Histogram(CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction2)).rotate(x => CaesarCipher.doShift(x, 1))
         histogram.get('B') shouldBe Some(23)
         English.comparer(histogram) shouldBe 0.041 +- 0.004
     }
@@ -26,7 +26,7 @@ class HistogramSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "apply 2" in {
-        val plainText = CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction)
+        val plainText = CaesarCipher.preparePlainText(CaesarCipherSpec.PoohIntroduction2)
         plainText.distinct.length shouldBe 21
         val histogram = Histogram(plainText)
         histogram.get('A') shouldBe Some(23)

@@ -3,6 +3,7 @@ package crypto
 import crypto.CaesarCipher.{doShift, preparePlainText}
 import crypto.Histogram
 import crypto.Histogram.{English, shiftedEnglishHistograms}
+import parse.EnglishParser
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -69,10 +70,15 @@ object CaesarCipher {
 
     private def decryptAndParse(cipherText: String, shift: Int) = {
         val plainText = CaesarCipher(shift).decrypt(cipherText)
-        CryptoTools.parseEnglish(plainText.toString)
+        val z: Try[Seq[String]] = englishParser.parseEnglishWords(plainText.toString)
+        println(z)
+        z.toOption
+//        CryptoTools.parseEnglish(plainText.toString)
     }
 
     private val A = 'A'
 
     private val radix = 26
+
+    private val englishParser = new EnglishParser
 }

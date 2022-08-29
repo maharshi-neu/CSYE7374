@@ -14,11 +14,18 @@ class EnglishParserSpec extends AnyFlatSpec with should.Matchers {
         parser.parseAll(parser.word2, "12").successful shouldBe false
     }
 
-    it should "wordParser" in {
+    it should "wordParser1" in {
         parser.parseAll(parser.wordParser, "a").successful shouldBe true
         parser.parseAll(parser.wordParser, "hello").successful shouldBe true
         parser.parseAll(parser.wordParser, "world").successful shouldBe true
         parser.parseAll(parser.wordParser, "helloworld").successful shouldBe false
+    }
+
+    it should "wordParser2" in {
+        parser.parseAll(parser.word3, "the") should matchPattern { case parser.Success("the") => }
+        parser.parseAll(parser.word6, "rapist") should matchPattern { case parser.Success("rapist") => }
+        parser.parseAll(parser.word9, "therapist") should matchPattern { case parser.Success("therapist") => }
+        parser.parseAll(parser.wordParser, "therapist") should matchPattern { case parser.Success("therapist") => }
     }
 
     it should "word9" in {
@@ -32,6 +39,7 @@ class EnglishParserSpec extends AnyFlatSpec with should.Matchers {
 
     it should "parseEnglishWords" in {
         parser.parseEnglishWords("helloworld") should matchPattern { case scala.util.Success(Seq("hello", "world")) => }
+        parser.parseEnglishWords("hello world") should matchPattern { case scala.util.Success(Seq("hello", "world")) => }
     }
 
 }

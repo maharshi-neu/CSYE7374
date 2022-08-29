@@ -1,7 +1,7 @@
 package crypto
 
 import crypto.CaesarCipher.{doShift, guessShift, preparePlainText}
-import crypto.CaesarCipherSpec.PoohIntroduction
+import crypto.CaesarCipherSpec.PoohIntroduction1
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -45,7 +45,7 @@ class CaesarCipherSpec extends AnyFlatSpec with should.Matchers {
     it should "guessShift 1" in {
         val shift = 1
         val unknownCipher = CaesarCipher(shift)
-        val cipherText = unknownCipher.encrypt(PoohIntroduction)
+        val cipherText = unknownCipher.encrypt(PoohIntroduction1)
         val bestGuess = guessShift(cipherText.toString)
         bestGuess shouldBe Some(1)
         val guessedCipher = CaesarCipher(bestGuess.get)
@@ -55,31 +55,36 @@ class CaesarCipherSpec extends AnyFlatSpec with should.Matchers {
     it should "guessShift 2" in {
         val shift = 2
         val unknownCipher = CaesarCipher(shift)
-        val cipherText = unknownCipher.encrypt(PoohIntroduction)
+        val cipherText = unknownCipher.encrypt(PoohIntroduction1)
         val maybeInt = guessShift(cipherText.toString)
         maybeInt shouldBe Some(2)
         val guessedCipher = CaesarCipher(maybeInt.get)
         val pattern = """HERE.*""".r
         pattern.matches(guessedCipher.decrypt(cipherText)) shouldBe true
     }
+
     it should "guessShift 3" in {
         val shift = 3
         val unknownCipher = CaesarCipher(shift)
-        val cipherText = unknownCipher.encrypt(PoohIntroduction)
+        val cipherText = unknownCipher.encrypt(PoohIntroduction1)
         val maybeGuess = guessShift(cipherText.toString)
         // NOTE: this doesn't actually work but, based on only one three-letter stem, it seems OK.
-        maybeGuess shouldBe Some(16)
+        maybeGuess shouldBe Some(3)
     }
 }
 
 object CaesarCipherSpec {
 
-    val PoohIntroduction: String =
+    val PoohIntroduction1: String =
         """Here is Edward Bear, coming downstairs now, bump, bump, bump, on the
-          |back of his head, behind Christopher Robin. It is, as far as he knows,
-          |the only way of coming downstairs, but sometimes he feels that there
-          |really is another way, if only he could stop bumping for a moment and
-          |think of it. And then he feels that perhaps there isn't. Anyhow, here he
-          |is at the bottom, and ready to be introduced to you. Winnie-the-Pooh.""".stripMargin
+          |back of his head, behind Christopher Robin.""".stripMargin
+
+    val PoohIntroduction2: String =
+        PoohIntroduction1 +
+                """It is, as far as he knows,
+                  |the only way of coming downstairs, but sometimes he feels that there
+                  |really is another way, if only he could stop bumping for a moment and
+                  |think of it. And then he feels that perhaps there isn't. Anyhow, here he
+                  |is at the bottom, and ready to be introduced to you. Winnie-the-Pooh.""".stripMargin
 
 }
