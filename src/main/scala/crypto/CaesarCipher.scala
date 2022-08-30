@@ -10,6 +10,8 @@ import scala.util.matching.Regex
 /**
  * Case class to represent a Caesar cipher.
  *
+ * TODO consider re-writing this in terms of MultiShiftCipher with one shift only.
+ *
  * @param shift the number of places each letter will be shifted.
  */
 case class CaesarCipher(shift: Int) extends Cipher {
