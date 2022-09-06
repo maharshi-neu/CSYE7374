@@ -16,10 +16,10 @@ case class MultiShiftCipher(shifts: Seq[Int]) extends Cipher {
     val keyLength: Int = shifts.length
 
     def encrypt(w: CharSequence): CharSequence =
-        (for ((c, i) <- preparePlainText(w.toString).zipWithIndex) yield doShift(c, shifts(i % keyLength))) mkString ""
+        ??? // TODO implement me
 
     def decrypt(w: CharSequence): CharSequence =
-        (for ((x, i) <- w.toString.zipWithIndex) yield doShift(x, -shifts(i % keyLength))) mkString ""
+        ??? // TODO implement me
 }
 
 object MultiShiftCipher {
