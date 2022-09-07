@@ -15,8 +15,7 @@ import scala.util.matching.Regex
  * @param shift the number of places each letter will be shifted.
  */
 case class CaesarCipher(shift: Int) extends Cipher {
-    def encrypt(w: CharSequence): CharSequence =
-        for (c <- preparePlainText(w.toString)) yield doShift(c, shift)
+    def encrypt(w: CharSequence): CharSequence = for (c <- preparePlainText(w)) yield doShift(c, shift)
 
     def decrypt(w: CharSequence): CharSequence = for (x <- w.toString) yield doShift(x, -shift)
 }
@@ -29,9 +28,10 @@ object CaesarCipher {
      * @param w the string to be prepared.
      * @return a string consisting only of the characters A...Z.
      */
-    def preparePlainText(w: String): String = {
+    def preparePlainText(w: CharSequence): String = {
         val sb = new StringBuilder()
-        for (m <- """\w+""".r findAllMatchIn w.toUpperCase; x <- m.group(0)) sb.append(x)
+        val chars = w.toString.toUpperCase
+        for (m <- """\w+""".r findAllMatchIn chars; x <- m.group(0)) sb.append(x)
         sb.toString()
     }
 
@@ -57,7 +57,7 @@ object CaesarCipher {
      * @param cipherText the cipher text which you would like to decrypt.
      * @return an optional Int representing the best shift. If None, then we couldn't find any suitable shift.
      */
-    def guessShift(cipherText: String): Option[Int] = {
+    def guessShift(cipherText: CharSequence): Option[Int] = {
         bestShifts(Histogram(cipherText)).find(x => decryptAndParse(cipherText, x).isDefined)
     }
 
@@ -70,12 +70,9 @@ object CaesarCipher {
      */
     def doShift(x: Char, shift: Int): Char = ((x.toInt + shift - A + radix) % radix + A).toChar
 
-    private def decryptAndParse(cipherText: String, shift: Int) = {
+    private def decryptAndParse(cipherText: CharSequence, shift: Int): Option[Seq[String]] = {
         val plainText = CaesarCipher(shift).decrypt(cipherText)
-        val z: Try[Seq[String]] = englishParser.parseEnglishWords(plainText.toString)
-        println(z)
-        z.toOption
-//        CryptoTools.parseEnglish(plainText.toString)
+        englishParser.parseEnglishWords(plainText).toOption
     }
 
     private val A = 'A'

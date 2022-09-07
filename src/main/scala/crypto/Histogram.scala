@@ -38,7 +38,7 @@ object Histogram {
      * @param w the string (typically ciphertext). Must be in upper case.
      * @return the Histogram for the string w.
      */
-    def apply(w: String): Histogram = (for (x <- w) yield x).foldLeft(Histogram(Map())) { (m, x) => m.recordChar(x) }
+    def apply(w: CharSequence): Histogram = (for (x <- w.toString) yield x).foldLeft(Histogram(Map())) { (m, x) => m.recordChar(x) }
 
     /**
      * The English Histogram.
