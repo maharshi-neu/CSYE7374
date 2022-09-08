@@ -1,6 +1,7 @@
 package parse
 
 import crypto.CryptoTools
+import parse.EnglishParser.toLowerCase
 import scala.util.Try
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
@@ -16,7 +17,7 @@ class EnglishParser extends JavaTokenParsers {
      * @param w the string to be parsed--it may contain spaces and/or a mix of any case.
      * @return Success(list) if all words are English; otherwise Failure if there are any non-English words, digits or punctuation (other than space).
      */
-    def parseEnglishWords(w: String): Try[Seq[String]] = parseAll(wordsParser, w.toLowerCase) match {
+    def parseEnglishWords(w: CharSequence): Try[Seq[String]] = parseAll(wordsParser, toLowerCase(w)) match {
         case Success(ws, _) => scala.util.Success(ws)
         case Failure(x, z) => scala.util.Failure(EnglishParserException(s"$x: $z"))
         case Error(x, z) => scala.util.Failure(EnglishParserException(s"$x: $z"))
@@ -61,6 +62,10 @@ class EnglishParser extends JavaTokenParsers {
 
     def wordMany: Parser[String] = englishWordParser("""\w{15}\w+""".r)
 
+}
+
+object EnglishParser {
+    def toLowerCase(w: CharSequence): CharSequence = w.toString.toLowerCase
 }
 
 case class EnglishParserException(s: String) extends Exception(s)

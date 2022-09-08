@@ -46,7 +46,7 @@ class CaesarCipherSpec extends AnyFlatSpec with should.Matchers {
         val shift = 1
         val unknownCipher = CaesarCipher(shift)
         val cipherText = unknownCipher.encrypt(PoohIntroduction1)
-        val bestGuess = guessShift(cipherText.toString)
+        val bestGuess = guessShift(cipherText)
         bestGuess shouldBe Some(1)
         val guessedCipher = CaesarCipher(bestGuess.get)
         val pattern = """HERE.*""".r
@@ -56,7 +56,7 @@ class CaesarCipherSpec extends AnyFlatSpec with should.Matchers {
         val shift = 2
         val unknownCipher = CaesarCipher(shift)
         val cipherText = unknownCipher.encrypt(PoohIntroduction1)
-        val maybeInt = guessShift(cipherText.toString)
+        val maybeInt = guessShift(cipherText)
         maybeInt shouldBe Some(2)
         val guessedCipher = CaesarCipher(maybeInt.get)
         val pattern = """HERE.*""".r
@@ -67,7 +67,7 @@ class CaesarCipherSpec extends AnyFlatSpec with should.Matchers {
         val shift = 3
         val unknownCipher = CaesarCipher(shift)
         val cipherText = unknownCipher.encrypt(PoohIntroduction1)
-        val maybeGuess = guessShift(cipherText.toString)
+        val maybeGuess = guessShift(cipherText)
         // NOTE: this doesn't actually work but, based on only one three-letter stem, it seems OK.
         maybeGuess shouldBe Some(3)
     }
