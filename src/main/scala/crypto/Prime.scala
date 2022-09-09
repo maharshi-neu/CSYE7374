@@ -291,7 +291,7 @@ object Prime {
    * @return a Prime whose value may or may not be a Prime number.
    * @throws PrimeException if p is not positive.
    */
-  def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException("prime must be positive")
+  def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException(s"prime must be positive ($p)")
 
   /**
    * Method to create a (probable) Prime from a String.
@@ -430,10 +430,33 @@ object Primes {
    * @throws PrimeException if f does not yield finite list.
    */
   def probablePrimes(f: Prime => Boolean): List[Prime] = {
-    val result = probablePrimesLazy(f)
-    if (result.knownSize == -1) result.toList
-    else throw PrimeException("probablyPrimes: filter does not yield finite list")
+      val result = probablePrimesLazy(f)
+      if (result.knownSize == -1) result.toList
+      else throw PrimeException("probablyPrimes: filter does not yield finite list")
   }
+
+    /**
+     * Method to implement Eratosthenes Sieve.
+     *
+     * NOTE: this method uses an (mutable) Array and a mutable variable.
+     *
+     * @param n the largest number that we could get back as a prime.
+     * @return a list of Prime numbers.
+     */
+    def eSieve(n: Int): List[Prime] = {
+        val sieve = new Array[Boolean](n + 1)
+        var p = 2
+        while (p < n) {
+            for (i <- 2 to n / p) {
+                val j = i * p
+                if (!sieve(j)) sieve(j) = true
+            }
+            p += 1
+            while (p <= n && sieve(p)) p += 1
+        }
+        val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot((x, _) => x)
+        for (x <- result) yield Prime(x._2)
+    }
 
     /**
      * Method to yield a lazy list of all probable primes.

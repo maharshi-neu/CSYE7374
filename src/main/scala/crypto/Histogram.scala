@@ -6,7 +6,7 @@ import scala.annotation.unused
 case class Histogram(map: Map[Char, Int]) {
     def recordChar(x: Char): Histogram = Histogram(map + (x -> (map.getOrElse(x, 0) + 1)))
 
-    def rotate(f: Char => Char): Histogram = Histogram(for ((x, y) <- map) yield f(x) -> y)
+    def rotate(f: Char => Char): Histogram = Histogram(for ((x, count) <- map) yield f(x) -> count)
 
     def total: Int = map.values.sum
 
