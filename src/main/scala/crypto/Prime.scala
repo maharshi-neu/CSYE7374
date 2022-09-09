@@ -1,11 +1,10 @@
 package crypto
 
-import crypto.Primes.{allPrimes, bigInts, carmichael, hundredPrimes}
-
+import crypto.Primes.*
 import java.math.BigInteger
 import scala.annotation.tailrec
 import scala.collection.SortedSet
-import scala.util.Random
+import scala.util.{Failure, Random, Success, Try}
 
 /**
  * Class to represent a (possible) prime number.
@@ -436,22 +435,31 @@ object Primes {
     else throw PrimeException("probablyPrimes: filter does not yield finite list")
   }
 
-  /**
-   * Method to yield a lazy list of all probable primes.
-   *
-   * @return a LazyList[Prime].
-   */
-  lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
+    /**
+     * Method to yield a lazy list of all probable primes.
+     *
+     * @return a LazyList[Prime].
+     */
+    lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
 
-  /**
-   * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
-   */
-  val carmichael: SortedSet[BigInt] =
-    SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+    /**
+     * Method to yield a lazy list of all probable primes smaller than x.
+     *
+     * @return a LazyList[Prime].
+     */
+    def smallPrimes(x: BigInt): LazyList[Prime] = allPrimes takeWhile {
+        _.p < x
+    }
 
-  /**
-   * The first 100 true primes.
-   */
+    /**
+     * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
+     */
+    val carmichael: SortedSet[BigInt] =
+        SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+
+    /**
+     * The first 100 true primes.
+     */
   val hundredPrimes: SortedSet[Prime] =
     SortedSet(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
       283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541).map(Prime(_))
@@ -478,7 +486,7 @@ object Primes {
  * It's not idiomatic Scala but I will clean it up as we go forward.
  */
 object MillerRabin {
-  // This code is from link shown below: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
+  // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
   def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
     var a_to_power: BigInt = a.modPow(d, n)
@@ -491,7 +499,7 @@ object MillerRabin {
   }
 
   /**
-   * Method (originally called miller_rabin) from literateprograms with slight improvements for elegance.
+   * Method (originally called miller_rabin) from "literateprograms" with slight improvements for elegance.
    *
    * NOTE: this is equivalent (I believe) to n.isProbablePrime(40),
    * i.e. there's a one-in-a-trillion chance that we get false positive.
@@ -531,14 +539,40 @@ object MillerRabin {
     else s"invalid action: $action"
 
   private def decompose(n: BigInt) = {
-    var d: BigInt = n - 1
-    var s: Int = 0
-    while (2 |> d) {
-      d >>= 1
-      s += 1
-    }
-    (d, s)
+      var d: BigInt = n - 1
+      var s: Int = 0
+      while (2 |> d) {
+          d >>= 1
+          s += 1
+      }
+      (d, s)
   }
+}
+
+object Goldbach {
+
+    /**
+     * Method to get the pair or primes which sum to an even number.
+     *
+     * @param x the number.
+     * @return a Try of a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+     */
+    def goldbach(x: BigInt): Try[(Prime, Prime)] =
+        if (!(x < 0) && x % 2 == 0) Try(doGoldbachEven(x))
+        else Failure(new IllegalArgumentException("goldbach: input must be positive and even"))
+
+    /**
+     * Must be called with x positive and even.
+     *
+     * @param x the number.
+     * @return a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+     */
+    private def doGoldbachEven(x: BigInt) = {
+        smallPrimes(x) find { p => Prime(x - p.p).isProbablePrime } match {
+            case Some(p1) => p1 -> Prime(x - p1.p)
+            case None => throw new IllegalArgumentException
+        }
+    }
 }
 
 case class PrimeException(str: String) extends Exception(str)
