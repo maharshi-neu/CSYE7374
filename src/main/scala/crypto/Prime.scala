@@ -551,28 +551,29 @@ object MillerRabin {
 
 object Goldbach {
 
-    /**
-     * Method to get the pair or primes which sum to an even number.
-     *
-     * @param x the number.
-     * @return a Try of a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
-     */
-    def goldbach(x: BigInt): Try[(Prime, Prime)] =
-        if (!(x < 0) && x % 2 == 0) Try(doGoldbachEven(x))
-        else Failure(new IllegalArgumentException("goldbach: input must be positive and even"))
+  /**
+   * Method to get a pair of primes which sum to a number.
+   *
+   * @param x an even number greater than 2.
+   * @return a Try of a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+   */
+  def goldbach(x: BigInt): Try[(Prime, Prime)] =
+    if (x > 2 && x % 2 == 0) Try(doGoldbachEven(x))
+    else Failure(new IllegalArgumentException("goldbach: input must be positive and even"))
 
-    /**
-     * Must be called with x positive and even.
-     *
-     * @param x the number.
-     * @return a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
-     */
-    private def doGoldbachEven(x: BigInt) = {
-        smallPrimes(x) find { p => Prime(x - p.p).isProbablePrime } match {
-            case Some(p1) => p1 -> Prime(x - p1.p)
-            case None => throw new IllegalArgumentException
-        }
+  /**
+   * Must be called with x>2 and even.
+   *
+   * @param x the number.
+   * @return a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+   */
+  private def doGoldbachEven(x: BigInt) =
+    possiblePairs(x) find { (_, p2) => p2.isProbablePrime } match {
+      case Some(p1, p2) => p1 -> p2
+      case None => throw new IllegalArgumentException
     }
+
+  private def possiblePairs(x: BigInt) = for (p <- smallPrimes(x)) yield p -> Prime(x - p.p)
 }
 
 case class PrimeException(str: String) extends Exception(str)
