@@ -178,11 +178,11 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
   /**
    * Method to yield a raised to the power n modulo p.
    *
-   * @param a a BigInt representing the base number.
-   * @param n a BigInt representing the power to which a will be raised.
+   * @param base     a BigInt representing the base number.
+   * @param exponent a BigInt representing the power to which a will be raised.
    * @return the value of a.pow(n) mod p.
    */
-  def modPow(a: BigInt, n: BigInt): BigInt = a.modPow(n, p)
+  def modPow(base: BigInt, exponent: BigInt): BigInt = base.modPow(exponent, p)
 
   /**
    * Method to determine if this Prime is coPrime to n.
