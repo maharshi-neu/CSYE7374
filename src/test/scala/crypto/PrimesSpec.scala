@@ -79,7 +79,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
 
   it should "implement Lucas()" in {
     val p = Prime(71)
-    val pMinus1: BigInt = p.p - 1
+    val pMinus1: BigInt = p.toBigInt - 1
     val factors = Prime.primeFactors(pMinus1)
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true
@@ -211,7 +211,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "get primes < 1000" in {
-    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.p < 1000)
+    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.toBigInt < 1000)
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }

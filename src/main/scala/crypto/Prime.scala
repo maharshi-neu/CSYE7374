@@ -46,12 +46,12 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
   /**
    * Determine the multiplicative inverse of a, modulo this prime.
    *
-   * NOTE: modPow(a, p - 2) appears to work fine. However, we will use the modInverse method instead.
+   * NOTE: for a prime number, the multiplicativeInverse is modPow(a, p - 2); for other numbers, we use the modInverse method on BigInt.
    *
    * @param a the value whose multiplicative inverse we require.
    * @return a number z such that z a is congruent to 1 modulo this prime.
    */
-  def multiplicativeInverse(a: BigInt): BigInt = a.modInverse(p)
+  def multiplicativeInverse(a: BigInt): BigInt = modPow(a, p - 2)
 
   /**
    * Method to determine if this is indeed a probably prime.
@@ -196,11 +196,11 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
   override def toString: String = Prime.formatWithCommas(p)
 
   /**
-   * Method to yield a raised to the power n modulo p.
+   * Method to yield base raised to the power exponent modulo p.
    *
    * @param base     a BigInt representing the base number.
    * @param exponent a BigInt representing the power to which a will be raised.
-   * @return the value of a.pow(n) mod p.
+   * @return the value of base.pow(exponent) mod p.
    */
   def modPow(base: BigInt, exponent: BigInt): BigInt = base.modPow(exponent, p)
 

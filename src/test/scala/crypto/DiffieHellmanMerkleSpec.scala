@@ -19,8 +19,8 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
 
   it should "construct" in {
     val target = DiffieHellmanMerkle(prime, g)
-    target.p shouldBe prime
-    target.g shouldBe g
+    target.modulus shouldBe prime
+    target.generator shouldBe g
     target.toString shouldBe s"DiffieHellmanMerkle($prime,$g)"
   }
 
@@ -47,14 +47,14 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
     val multiplicativeInverse = target.multiplicativeInverse(s)
     multiplicativeInverse shouldBe 9
     val product: BigInt = s * multiplicativeInverse
-    product.mod(prime.p) shouldBe 1
+    product.mod(prime.toBigInt) shouldBe 1
     product shouldBe 162
-    product shouldBe (prime.p * 7 + 1)
+    product shouldBe (prime.toBigInt * 7 + 1)
   }
 
   it should "modPow" in {
     val z = prime.modPow(plainText, secret)
-    z shouldBe plainText.pow(secret.toInt).mod(prime.p)
+    z shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
     z shouldBe cipherText
   }
 
@@ -72,9 +72,9 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
     val inverseSecret = DiffieHellmanMerkle(prime, g).multiplicativeInverse(secret)
     inverseSecret shouldBe 9
     val cipherText = prime.modPow(plainText, secret)
-    cipherText shouldBe plainText.pow(secret.toInt).mod(prime.p)
+    cipherText shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
     val recoveredText: BigInt = prime.modPow(cipherText, inverseSecret)
-    recoveredText shouldBe cipherText.pow(inverseSecret.toInt).mod(prime.p)
+    recoveredText shouldBe cipherText.pow(inverseSecret.toInt).mod(prime.toBigInt)
     recoveredText shouldBe plainText
   }
 

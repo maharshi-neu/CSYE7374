@@ -13,7 +13,7 @@ trait RawCipher {
 }
 
 case class Key(n: BigInt, p: Prime) {
-    def apply(x: BigInt): BigInt = x.modPow(p.p, n)
+    def apply(x: BigInt): BigInt = x.modPow(p.toBigInt, n)
 }
 
 case class RSA(publicKey: Key, privateKey: Key) extends RawCipher {
@@ -45,8 +45,8 @@ object RSA {
         val totient: BigInt = reducedTotient(n)
         val primes: List[Prime] = smallPrimes(totient).toList.filter(p => p.validate).filter(p => p.isCoprimeTo(totient))
         val e: Prime = primes(f(random, primes.length))
-        val d: Prime = Prime(e.p.modInverse(totient))
-        val z = (d.p * e.p).mod(totient)
+        val d: Prime = Prime(e.toBigInt.modInverse(totient))
+        val z = (d.toBigInt * e.toBigInt).mod(totient)
 //        println(s"RSA: n: $n, e: $e, d: $d, totient: $totient, z: $z")
         assert(z == 1)
 
