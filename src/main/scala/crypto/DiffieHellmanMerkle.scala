@@ -1,5 +1,7 @@
 package crypto
 
+import scala.util.{Failure, Success, Try}
+
 /**
  * This defines a DiffieHellmanMerkle key exchange.
  *
@@ -17,9 +19,10 @@ case class DiffieHellmanMerkle(modulus: Prime, generator: BigInt) {
 
     def decrypt(cipher: BigInt)(secret: BigInt): BigInt = modPow(cipher)(multiplicativeInverse(secret))
 
-    def keyExchange(privateKey: BigInt): BigInt = if (privateKey > 0 && privateKey < modulus.toBigInt) modPow(generator)(privateKey) else throw PrimeException("privateKey must be positive and less than prime number")
+    def keyExchange(privateKey: BigInt): BigInt = modPow(generator)(privateKey.mod(modulus.toBigInt))
 
-    def secret(a: BigInt, b: BigInt): BigInt = {
+    def secret(a: BigInt, b: BigInt): Try[BigInt] = Try {
+        assert(a > 0 && b > 0)
         val ab = getSecret(keyExchange(a))(b)
         val ba = getSecret(keyExchange(b))(a)
         if (ab == ba) ab
