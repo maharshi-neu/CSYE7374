@@ -1,8 +1,9 @@
 package crypto
 
+import crypto.Prime.{primeFactorMultiplicity, totient}
 import crypto.Primes.*
 import java.math.BigInteger
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, targetName}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
 
@@ -16,6 +17,25 @@ import scala.util.{Failure, Random, Success, Try}
  * @param p the value of the (possible) prime number (should be greater than zero, although this is not checked)
  */
 case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
+
+  /**
+   * Method to evaluate Euler's Totient function for this Prime raised to power r.
+   *
+   * @param r the exponent (power) by which the prime is raised.
+   * @return a BigInt, which represents the number of elements less than p which are relatively prime to p.
+   *
+   */
+  def totient(r: Int): BigInt = p.pow(r - 1) * (p - 1)
+
+  /**
+   * Method to multiply this Prime by another to yield a BigInt.
+   *
+   * @param o the other prime.
+   * @return a BigInt whose value is the product of the value of this and the value of o.
+   */
+  @targetName("times")
+  def *(o: Prime): BigInt = p * o.p
+
   /**
    * Get the length of this prime in bits.
    *
@@ -214,17 +234,59 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
 object Prime {
 
   /**
-   * Method to yield the value of the Euler's Totient function for this Prime.
+   * Method to yield the least common multiple of two numbers.
+   *
+   * @param x a BigInt.
+   * @param y a BigInt.
+   * @return a BigInt that is the least common multiple of x and y.
+   */
+  def lcm(x: BigInt, y: BigInt): BigInt = x * y / x.gcd(y)
+
+  /**
+   * Method to yield the value of the Euler's Totient function (phi) for this Prime.
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
    *
-   * @return a BigInt, which represents the number of elements less than p which are relatively prime to this.
+   * @param x a BigInt for which we require Euler's totient function.
+   * @return a BigInt, which represents the number of elements less than p which are relatively prime to x.
    */
-  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (r, f) =>
-    f match {
-      case (p, m) => r * (p.p - 1) * p.p.pow(m - 1)
+  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (phi, factor) => phi * totient(factor) }
+
+  /**
+   * Euler's totient function for a prime power.
+   *
+   * @param factor a tuple of Prime and exponent.
+   * @return Euler's totient function for this Prime power.
+   */
+  def totient(factor: (Prime, Int)): BigInt = factor match {
+    case (p, r) => p.totient(r)
+  }
+
+  /**
+   * Method to calculate the Carmichael (or "reduced") totient for x.
+   *
+   * @param x a BigInt for which we require Carmichael's totient function.
+   * @return a BigInt, which represents the Carmichael totient function.
+   */
+  def reducedTotient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (lambda, factor) =>
+    factor match {
+      case (p, r) => Prime.lcm(lambda, reducedTotient(p -> r))
     }
   }
+
+  /**
+   * Carmichael's totient function for a prime power.
+   * NOTE: often, this will be the same as Euler's totient function, but sometimes it will be one half.
+   *
+   * @param factor a tuple of Prime and exponent.
+   * @return Carmichael's totient function for this Prime power.
+   */
+  def reducedTotient(factor: (Prime, Int)): BigInt = factor match {
+    case (p, r) =>
+      val phi = totient(factor)
+      if (p.p == 2 && r >= 3) phi / 2 else phi
+  }
+
 
   /**
    * Method to yield the prime factors (with repeated elements).
