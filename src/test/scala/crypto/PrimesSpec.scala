@@ -2,7 +2,6 @@ package crypto
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 
 class PrimesSpec extends AnyFlatSpec with should.Matchers {
@@ -80,7 +79,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
 
   it should "implement Lucas()" in {
     val p = Prime(71)
-    val pMinus1: BigInt = p.p - 1
+    val pMinus1: BigInt = p.toBigInt - 1
     val factors = Prime.primeFactors(pMinus1)
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true
@@ -205,15 +204,35 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     first100.last shouldBe Prime(541)
   }
 
+  // SLOW
   it should "get first 1000 primes" in {
     val first1000: Seq[Prime] = Primes.allPrimes.take(1000).toList
     first1000.last shouldBe Prime(7919)
   }
 
   it should "get primes < 1000" in {
-    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.p < 1000)
+    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.toBigInt < 1000)
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
+  }
+
+  it should "get small primes < 1000" in {
+    val lessThan1000: Seq[Prime] = Primes.smallPrimes(1000)
+    lessThan1000.size shouldBe 168
+    lessThan1000.last shouldBe Prime(997)
+  }
+
+  it should "eSieve for primes < 1000" in {
+    val lessThan1000: Seq[Prime] = Primes.eSieve(1000)
+    lessThan1000.size shouldBe 168
+    lessThan1000.last shouldBe Prime(997)
+  }
+
+  // SLOW
+  it should "eSieve for primes < 10000" in {
+    val lessThan1000: Seq[Prime] = Primes.eSieve(100000)
+    lessThan1000.size shouldBe 9592
+    lessThan1000.last shouldBe Prime(99991)
   }
 
   it should "test MillerRabin" in {

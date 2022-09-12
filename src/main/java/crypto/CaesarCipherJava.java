@@ -16,7 +16,6 @@ public class CaesarCipherJava implements crypto.Cipher {
 
     @Override
     public CharSequence decrypt(CharSequence cipherText) {
-        // You will probably need to convert cipherText into a String using the toString method.
         StringBuilder sb = new StringBuilder();
         for (char c : cipherText.toString().toCharArray()) ; // TODO you need to append each shifted character to sb. Again, you can use:  CaesarCipher.doShift
         return sb.toString();

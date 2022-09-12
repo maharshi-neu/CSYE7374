@@ -1,11 +1,11 @@
 package crypto
 
-import crypto.Primes.{allPrimes, bigInts, carmichael, hundredPrimes}
-
+import crypto.Prime.{primeFactorMultiplicity, totient}
+import crypto.Primes.*
 import java.math.BigInteger
-import scala.annotation.tailrec
+import scala.annotation.{tailrec, targetName}
 import scala.collection.SortedSet
-import scala.util.Random
+import scala.util.{Failure, Random, Success, Try}
 
 /**
  * Class to represent a (possible) prime number.
@@ -14,55 +14,74 @@ import scala.util.Random
  *
  * NOTE: just because we have an instance of Prime does not mean that it is a prime number.
  *
- * @param p the value of the (possible) prime number (should be greater than zero, although this is not checked)
+ * @param n the value of the (possible) prime number (should be greater than zero, although this is not checked)
  */
-case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
+case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
+
+  /**
+   * Method to evaluate Euler's Totient function for this Prime raised to power r.
+   *
+   * @param r the exponent (power) by which the prime is raised.
+   * @return a BigInt, which represents the number of elements less than n which are relatively prime to n.
+   *
+   */
+  def totient(r: Int): BigInt = n.pow(r - 1) * (n - 1)
+
+  /**
+   * Method to multiply this Prime by another to yield a BigInt.
+   *
+   * @param o the other prime.
+   * @return a BigInt whose value is the product of the value of this and the value of o.
+   */
+  @targetName("times")
+  def *(o: Prime): BigInt = n * o.n
+
   /**
    * Get the length of this prime in bits.
    *
    * @return the length in bits.
    */
-  def bits: Int = p.bitLength
+  def bits: Int = n.bitLength
 
   /**
    * Determine the multiplicative inverse of a, modulo this prime.
    *
-   * NOTE: modPow(a, p - 2) appears to work fine. However, we will use the modInverse method instead.
+   * NOTE: for a prime number, the multiplicativeInverse is modPow(a, n - 2); for other numbers, we use the modInverse method on BigInt.
    *
    * @param a the value whose multiplicative inverse we require.
    * @return a number z such that z a is congruent to 1 modulo this prime.
    */
-  def multiplicativeInverse(a: BigInt): BigInt = a.modInverse(p)
+  def multiplicativeInverse(a: BigInt): BigInt = modPow(a, n - 2)
 
   /**
    * Method to determine if this is indeed a probably prime.
    *
    * NOTE: ideally, we should be able to substitute Lucas here.
    *
-   * @return the result of Prime.isProbablePrime(p).
+   * @return the result of Prime.isProbablePrime(n).
    */
-  def isProbablePrime: Boolean = Prime.isProbablePrime(p)
+  def isProbablePrime: Boolean = Prime.isProbablePrime(n)
 
   /**
-   * This yields the value of a.pow(p-1) mod p.
+   * This yields the value of a.pow(n-1) mod n.
    *
-   * @param a a BigInt which is not divisible by p.
-   * @return a BigInt which, if this is prime, should be 1 for all 0 < a < p.
+   * @param a a BigInt which is not divisible by n.
+   * @return a BigInt which, if this is prime, should be 1 for all 0 < a < n.
    */
-  def fermat(a: BigInt): BigInt = modPow(a, p - 1)
+  def fermat(a: BigInt): BigInt = modPow(a, n - 1)
 
   /**
    * Method to apply the Lucas test of primality.
    *
    * TODO determine why this is so slow compared with Miller-Rabin.
    *
-   * @return true if for any random value a such that 0 < a < p - 1, Lucas(p-1, factors)(a) is true where factors are the prime factors of p - 1.
+   * @return true if for any random value a such that 0 < a < n - 1, Lucas(n-1, factors)(a) is true where factors are the prime factors of n - 1.
    */
   def Lucas: Boolean = {
-    val factors = Prime.primeFactors(p - 1)
-    val as: Seq[BigInt] = Prime.getRandomValues(p)
+    val factors = Prime.primeFactors(n - 1)
+    val as: Seq[BigInt] = Prime.getRandomValues(n)
     // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
-    as.exists(Lucas(p - 1, factors)(_))
+    as.exists(Lucas(n - 1, factors)(_))
   }
 
   /**
@@ -83,7 +102,7 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @return
    */
   def primitiveRoot: BigInt = {
-    val as: Seq[BigInt] = Prime.getRandomValues(p)
+    val as: Seq[BigInt] = Prime.getRandomValues(n)
     as.find(a => fermat(a) == 1 && testPrimitiveRoot(a)) match {
       case Some(a) => a
       case None => throw PrimeException(s"primitiveRoot: failed to find primitive root for $this (is it prime?)")
@@ -108,58 +127,58 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if this number is prime.
    */
-  def validate: Boolean = isProbablePrime && Prime.primeFactors(p).forall(_ == this)
+  def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
-   * Get the remainder from the division x/p.
+   * Get the remainder from the division x/n.
    *
    * @param x a BigInt.
-   * @return x % p
+   * @return x % n
    */
-  def remainder(x: BigInt): BigInt = x % p
+  def remainder(x: BigInt): BigInt = x % n
 
   /**
    * Get the value of this prime.
    *
-   * @return p.
+   * @return n.
    */
-  def toBigInt: BigInt = p
+  def toBigInt: BigInt = n
 
   /**
    * Get the value of this prime at a Double.
    *
-   * @return p.toDouble
+   * @return n.toDouble
    */
-  def toDouble: Double = p.toDouble
+  def toDouble: Double = n.toDouble
 
   /**
    * Optionally get the value of this prime as a Long.
    *
-   * @return Some(p) if it fits as a Long, otherwise None.
+   * @return Some(n) if it fits as a Long, otherwise None.
    */
-  def toLongOption: Option[Long] = if (p.abs < Long.MaxValue) Some(p.toLong) else None
+  def toLongOption: Option[Long] = if (n.abs < Long.MaxValue) Some(n.toLong) else None
 
   /**
    * Optionally get the value of this prime as an Int.
    *
-   * @return Some(p) if it fits as an Int, otherwise None.
+   * @return Some(n) if it fits as an Int, otherwise None.
    */
-  def toIntOption: Option[Int] = if (p.abs < Int.MaxValue) Some(p.toInt) else None
+  def toIntOption: Option[Int] = if (n.abs < Int.MaxValue) Some(n.toInt) else None
 
   /**
    * Get the next probable prime number after this one.
    *
-   * Equivalent to Prime(p.bigInteger.nextProbablePrime())
+   * Equivalent to Prime(n.bigInteger.nextProbablePrime())
    *
    * @return a probable prime which is greater than this.
    */
   def next: Prime = {
-    // Lazy list of numbers greater than p, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
-    val ys: LazyList[BigInt] = bigInts(p + 1).filter { x => x == 2 || x == 5 ||
+    // Lazy list of numbers greater than n, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
+    val ys: LazyList[BigInt] = bigInts(n + 1).filter { x => x == 2 || x == 5 ||
       { val r = x % 10; r == 1 || r == 3 || r == 7 || r == 9 }
     }
 
-    // Lazy list of probable primes larger than p.
+    // Lazy list of probable primes larger than n.
     val xs = ys.filter(_.isProbablePrime(40))
 
     // Return the first probable prime.
@@ -172,18 +191,18 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    * @param that the comparand.
    * @return -1, 0, or 1 according as this is less than, equal to, or greater than that.
    */
-  def compare(that: Prime): Int = p.compare(that.p)
+  def compare(that: Prime): Int = n.compare(that.n)
 
-  override def toString: String = Prime.formatWithCommas(p)
+  override def toString: String = Prime.formatWithCommas(n)
 
   /**
-   * Method to yield a raised to the power n modulo p.
+   * Method to yield base raised to the power exponent modulo n (i.e., this prime number).
    *
-   * @param a a BigInt representing the base number.
-   * @param n a BigInt representing the power to which a will be raised.
-   * @return the value of a.pow(n) mod p.
+   * @param base     a BigInt representing the base number.
+   * @param exponent a BigInt representing the power to which a will be raised.
+   * @return the value of base.pow(exponent) mod n.
    */
-  def modPow(a: BigInt, n: BigInt): BigInt = a.modPow(n, p)
+  def modPow(base: BigInt, exponent: BigInt): BigInt = base.modPow(exponent, n)
 
   /**
    * Method to determine if this Prime is coPrime to n.
@@ -191,23 +210,23 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
    *
-   * @param n a BigInt.
+   * @param x a BigInt.
    * @return true or false.
    */
-  def isCoprimeTo(n: BigInt): Boolean = p.gcd(n) == 1
+  def isCoprimeTo(x: BigInt): Boolean = n.gcd(x) == 1
 
   /**
-   * Return a Boolean which is true if a.pow(c/q) != 1 mod p for all q where q is a prime factor of c.
+   * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
    *
    * CONSIDER renaming this to something more descriptive.
    *
    * @param c  the value that is one less than a candidate prime number (i.e. a composite number).
    * @param qs the prime factors of c.
    * @param a  an arbitrary BigInt.
-   * @return true if for all q, a.pow(c/q) != 1 mod p
+   * @return true if for all q, a.pow(c/q) != 1 mod n
    */
   private def doLucas(c: BigInt, qs: Seq[Prime])(a: BigInt): Boolean = qs.forall(q => {
-    val compositeFactor = c / q.p
+    val compositeFactor = c / q.n
     modPow(a, compositeFactor) != 1
   })
 }
@@ -215,17 +234,59 @@ case class Prime(p: BigInt) extends AnyVal with Ordered[Prime] {
 object Prime {
 
   /**
-   * Method to yield the value of the Euler's Totient function for this Prime.
+   * Method to yield the least common multiple of two numbers.
+   *
+   * @param x a BigInt.
+   * @param y a BigInt.
+   * @return a BigInt that is the least common multiple of x and y.
+   */
+  def lcm(x: BigInt, y: BigInt): BigInt = x * y / x.gcd(y)
+
+  /**
+   * Method to yield the value of the Euler's Totient function (phi) for this Prime.
    *
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
    *
-   * @return a BigInt, which represents the number of elements less than p which are relatively prime to this.
+   * @param x a BigInt for which we require Euler's totient function.
+   * @return a BigInt, which represents the number of elements less than n which are relatively prime to x.
    */
-  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (r, f) =>
-    f match {
-      case (p, m) => r * (p.p - 1) * p.p.pow(m - 1)
+  def totient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (phi, factor) => phi * totient(factor) }
+
+  /**
+   * Euler's totient function for a prime power.
+   *
+   * @param factor a tuple of Prime and exponent.
+   * @return Euler's totient function for this Prime power.
+   */
+  def totient(factor: (Prime, Int)): BigInt = factor match {
+    case (p, r) => p.totient(r)
+  }
+
+  /**
+   * Method to calculate the Carmichael (or "reduced") totient for x.
+   *
+   * @param x a BigInt for which we require Carmichael's totient function.
+   * @return a BigInt, which represents the Carmichael totient function.
+   */
+  def reducedTotient(x: BigInt): BigInt = primeFactorMultiplicity(x).foldLeft(BigInt(1)) { (lambda, factor) =>
+    factor match {
+      case (p, r) => Prime.lcm(lambda, reducedTotient(p -> r))
     }
   }
+
+  /**
+   * Carmichael's totient function for a prime power.
+   * NOTE: often, this will be the same as Euler's totient function, but sometimes it will be one half.
+   *
+   * @param factor a tuple of Prime and exponent.
+   * @return Carmichael's totient function for this Prime power.
+   */
+  def reducedTotient(factor: (Prime, Int)): BigInt = factor match {
+    case (p, r) =>
+      val phi = totient(factor)
+      if (p.n == 2 && r >= 3) phi / 2 else phi
+  }
+
 
   /**
    * Method to yield the prime factors (with repeated elements).
@@ -246,17 +307,17 @@ object Prime {
    */
   def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] = {
     def factorCount(n: BigInt, p: Prime): (Int, Prime) =
-      if (n % p.p != 0) (0, Prime(n))
-      else factorCount(n / p.p, p) match {
+      if (n % p.toBigInt != 0) (0, Prime(n))
+      else factorCount(n / p.toBigInt, p) match {
         case (c, d) => (c + 1, d)
       }
 
     def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
-      if (n.p == 1) Map()
+      if (n.toBigInt == 1) Map()
       else if (n.isProbablePrime) Map(n -> 1)
       else {
-        val nps = ps.dropWhile(n.p % _.p != 0)
-        val (count, dividend) = factorCount(n.p, nps.head)
+        val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
+        val (count, dividend) = factorCount(n.toBigInt, nps.head)
         Map(nps.head -> count) ++ factorsR(dividend, nps.tail)
       }
 
@@ -275,7 +336,7 @@ object Prime {
   def factors(x: BigInt): Seq[Prime] = if (x > 0) {
     val max = math.sqrt(x.toDouble)
     val candidates = Primes.probablePrimes(_.toDouble <= max)
-    candidates filter (f => x % f.p == 0)
+    candidates filter (f => x % f.n == 0)
   }
   else throw PrimeException(s"factors: x is not positive: $x")
 
@@ -290,9 +351,9 @@ object Prime {
    *
    * @param p a positive BigInt.
    * @return a Prime whose value may or may not be a Prime number.
-   * @throws PrimeException if p is not positive.
+   * @throws PrimeException if n is not positive.
    */
-  def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException("prime must be positive")
+  def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException(s"prime must be positive ($p)")
 
   /**
    * Method to create a (probable) Prime from a String.
@@ -303,7 +364,7 @@ object Prime {
   def create(s: String): Option[Prime] = create(BigInt(s))
 
   /**
-   * Create an (optional) instance of Prime such that p is a probable prime.
+   * Create an (optional) instance of Prime such that n is a probable prime.
    *
    * @param p a BigInt.
    * @return an Option[Prime]
@@ -332,13 +393,13 @@ object Prime {
   def mersenneNumber(i: Int): BigInt = mersenneNumber(allPrimes(i))
 
   /**
-   * Method to yield a Mersenne number: (2 to the power of p) - 1.
+   * Method to yield a Mersenne number: (2 to the power of n) - 1.
    *
    * @param p the prime number to generate the Mersenne prime.
-   *          NOTE that no explicit check is made to ensure that p is prime.
+   *          NOTE that no explicit check is made to ensure that n is prime.
    * @return a BigInt.
    */
-  def mersenneNumber(p: Prime): BigInt = BigInt(2).pow(p.p.toInt) - 1
+  def mersenneNumber(p: Prime): BigInt = BigInt(2).pow(p.n.toInt) - 1
 
   /**
    * Method to detect if x has one of the smaller factors.
@@ -350,25 +411,25 @@ object Prime {
   def hasSmallFactor(x: BigInt): Boolean = (3 |> x) || (5 |> x) || (7 |> x)
 
   /**
-   * Method to determine if p is a probable prime.
-   * We use the MillerRabin test on p.
-   * NOTE: we assume that p is odd.
+   * Method to determine if n is a probable prime.
+   * We use the MillerRabin test on n.
+   * NOTE: we assume that n is odd.
    *
-   * More or less the equivalent of p.isProbablePrime(100).
+   * More or less the equivalent of n.isProbablePrime(100).
    * The performance appears to be similar
    *
    * @param p an odd BigInt.
-   * @return true if p is probably prime.
+   * @return true if n is probably prime.
    */
   def isProbableOddPrime(p: BigInt): Boolean =
     hundredPrimes.contains(Prime(p)) || (p <= 7 || !hasSmallFactor(p)) && !carmichael.contains(p) && MillerRabin.isProbablePrime(p)
 
   /**
-   * Method to determine if p is a probable prime.
-   * We use the MillerRabin test on p.
+   * Method to determine if n is a probable prime.
+   * We use the MillerRabin test on n.
    *
    * @param p a BigInt.
-   * @return true if p is probably prime.
+   * @return true if n is probably prime.
    */
   def isProbablePrime(p: BigInt): Boolean = (p == 2 || !(2 |> p)) && isProbableOddPrime(p)
 
@@ -431,27 +492,59 @@ object Primes {
    * @throws PrimeException if f does not yield finite list.
    */
   def probablePrimes(f: Prime => Boolean): List[Prime] = {
-    val result = probablePrimesLazy(f)
-    if (result.knownSize == -1) result.toList
-    else throw PrimeException("probablyPrimes: filter does not yield finite list")
+      val result = probablePrimesLazy(f)
+      if (result.knownSize == -1) result.toList
+      else throw PrimeException("probablyPrimes: filter does not yield finite list")
   }
 
-  /**
-   * Method to yield a lazy list of all probable primes.
-   *
-   * @return a LazyList[Prime].
-   */
-  lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
+    /**
+     * Method to implement Eratosthenes Sieve.
+     *
+     * NOTE: this method uses an (mutable) Array and a mutable variable.
+     *
+     * @param m the largest number that we could get back as a prime.
+     * @return a list of Prime numbers.
+     */
+    def eSieve(m: Int): List[Prime] = {
+        val sieve = new Array[Boolean](m + 1)
+        var p = 2
+        while (p < m) {
+            for (i <- 2 to m / p) {
+                val j = i * p
+                if (!sieve(j)) sieve(j) = true
+            }
+            p += 1
+            while (p <= m && sieve(p)) p += 1
+        }
+        val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot((x, _) => x)
+        for (x <- result) yield Prime(x._2)
+    }
 
-  /**
-   * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
-   */
-  val carmichael: SortedSet[BigInt] =
-    SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+    /**
+     * Method to yield a lazy list of all probable primes.
+     *
+     * @return a LazyList[Prime].
+     */
+    lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
 
-  /**
-   * The first 100 true primes.
-   */
+    /**
+     * Method to yield a lazy list of all probable primes smaller than x.
+     *
+     * @return a LazyList[Prime].
+     */
+    def smallPrimes(x: BigInt): LazyList[Prime] = allPrimes takeWhile {
+        _.n < x
+    }
+
+    /**
+     * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
+     */
+    val carmichael: SortedSet[BigInt] =
+        SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+
+    /**
+     * The first 100 true primes.
+     */
   val hundredPrimes: SortedSet[Prime] =
     SortedSet(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
       283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541).map(Prime(_))
@@ -478,7 +571,7 @@ object Primes {
  * It's not idiomatic Scala but I will clean it up as we go forward.
  */
 object MillerRabin {
-  // This code is from link shown below: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
+  // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
   def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
     val (d, s) = decompose(n)
     var a_to_power: BigInt = a.modPow(d, n)
@@ -490,7 +583,7 @@ object MillerRabin {
   }
 
   /**
-   * Method (originally called miller_rabin) from literateprograms with slight improvements for elegance.
+   * Method (originally called miller_rabin) from "literateprograms" with slight improvements for elegance.
    *
    * NOTE: this is equivalent (I believe) to n.isProbablePrime(40),
    * i.e. there's a one-in-a-trillion chance that we get false positive.
@@ -530,14 +623,41 @@ object MillerRabin {
     else s"invalid action: $action"
 
   private def decompose(n: BigInt) = {
-    var d: BigInt = n - 1
-    var s: Int = 0
-    while (2 |> d) {
-      d >>= 1
-      s += 1
-    }
-    (d, s)
+      var d: BigInt = n - 1
+      var s: Int = 0
+      while (2 |> d) {
+          d >>= 1
+          s += 1
+      }
+      (d, s)
   }
+}
+
+object Goldbach {
+
+  /**
+   * Method to get a pair of primes which sum to a number.
+   *
+   * @param x an even number greater than 2.
+   * @return a Try of a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+   */
+  def goldbach(x: BigInt): Try[(Prime, Prime)] =
+    if (x > 2 && x % 2 == 0) Try(doGoldbachEven(x))
+    else Failure(new IllegalArgumentException("goldbach: input must be positive and even"))
+
+  /**
+   * Must be called with x>2 and even.
+   *
+   * @param x the number.
+   * @return a tuple of (p1, p2) where p1, p2 are primes such that p1 + p2 = x.
+   */
+  private def doGoldbachEven(x: BigInt) =
+    possiblePairs(x) find { (_, p2) => p2.isProbablePrime } match {
+      case Some(p1, p2) => p1 -> p2
+      case None => throw new IllegalArgumentException
+    }
+
+  private def possiblePairs(x: BigInt) = for (p <- smallPrimes(x)) yield p -> Prime(x - p.n)
 }
 
 case class PrimeException(str: String) extends Exception(str)
