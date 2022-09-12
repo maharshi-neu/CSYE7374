@@ -32,13 +32,11 @@ case class DiffieHellmanMerkle(modulus: Prime, generator: BigInt) {
      * For more information about the multiplicative inverse, see https://en.wikipedia.org/wiki/Modular_multiplicative_inverse
      *
      * @param a the number for which we require the multiplicative inverse with respect to the prime number of this DiffieHellmanMerkle.
-     * @return generalMultiplicativeInverse(a, modulus.modulus - 2)
+     * @return modPow(a)(modulus - 2)
      */
-    def multiplicativeInverse(a: BigInt): BigInt = generalMultiplicativeInverse(a, modulus.toBigInt - 2)
+    def multiplicativeInverse(a: BigInt): BigInt = modPow(a)(modulus.toBigInt - 2)
 
     private def getSecret(receivedKey: BigInt)(privateKey: BigInt): BigInt = modPow(receivedKey)(privateKey)
-
-    private def generalMultiplicativeInverse(a: BigInt, m: BigInt) = modPow(a)(m)
 
     /**
      * Method to determine base raised to the power with result modulo modulus (the prime of this DiffieHellmanMerkle).

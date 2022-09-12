@@ -196,7 +196,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   override def toString: String = Prime.formatWithCommas(n)
 
   /**
-   * Method to yield base raised to the power exponent modulo n.
+   * Method to yield base raised to the power exponent modulo n (i.e., this prime number).
    *
    * @param base     a BigInt representing the base number.
    * @param exponent a BigInt representing the power to which a will be raised.
