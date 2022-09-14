@@ -314,7 +314,7 @@ object Prime {
 
     def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
       if (n.toBigInt == 1) Map()
-      else if (n.isProbablePrime) Map(n -> 1)
+      else if (hundredPrimes.contains(n)) Map(n -> 1)
       else {
         val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
         val (count, dividend) = factorCount(n.toBigInt, nps.head)
@@ -416,7 +416,9 @@ object Prime {
    * NOTE: we assume that n is odd.
    *
    * More or less the equivalent of n.isProbablePrime(100).
-   * The performance appears to be similar
+   * The performance appears to be similar.
+   *
+   * NOTE: you may be tempted to replace carmichael.contains(p) by isCarmichaelNumber(p) but tread very carefully if you do that!
    *
    * @param p an odd BigInt.
    * @return true if n is probably prime.
@@ -432,6 +434,21 @@ object Prime {
    * @return true if n is probably prime.
    */
   def isProbablePrime(p: BigInt): Boolean = (p == 2 || !(2 |> p)) && isProbableOddPrime(p)
+
+  /**
+   * Test n to determine if it is a Carmichael Number.
+   *
+   * @param n a BigInt to be tested.
+   * @return true if n is a Carmichael Number.
+   */
+  def isCarmichaelNumber(n: BigInt): Boolean =
+    carmichael.contains(n) || !hundredPrimes.contains(Prime(n)) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+
+  private def carmichaelTheoremApplies(n: BigInt) = {
+    val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
+    val tests = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
+    factors.size > 2 && tests.forall(p => p)
+  }
 
   /**
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
