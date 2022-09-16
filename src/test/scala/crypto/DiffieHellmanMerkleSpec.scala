@@ -67,23 +67,4 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
     val ciphers = for (i <- 1 to 22) yield target.encrypt(i)(sy.get)
     println(ciphers)
   }
-
-  // FIXME
-  ignore should "modPow 2" in {
-    val inverseSecret = DiffieHellmanMerkle(prime, g).multiplicativeInverse(secret)
-    inverseSecret shouldBe 9
-    val cipherText = prime.modPow(plainText, secret)
-    cipherText shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
-    val recoveredText: BigInt = prime.modPow(cipherText, inverseSecret)
-    recoveredText shouldBe cipherText.pow(inverseSecret.toInt).mod(prime.toBigInt)
-    recoveredText shouldBe plainText
-  }
-
-  // FIXME
-  ignore should "decrypt" in {
-    val target = DiffieHellmanMerkle(prime, g)
-    val sy = target.secret(aliceKey, bobKey)
-    sy shouldBe Success(secret)
-    target.decrypt(cipherText)(sy.get) shouldBe plainText
-  }
 }
