@@ -3,6 +3,7 @@ package crypto
 import java.math.BigInteger
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import scala.util.Success
 
 class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
 
@@ -37,16 +38,16 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
 
   it should "secret" in {
     val target = DiffieHellmanMerkle(prime, g)
-    target.secret(aliceKey, bobKey) shouldBe secret
+    target.secret(aliceKey, bobKey) shouldBe Success(secret)
   }
 
   it should "get the multiplicative inverse" in {
     val target = DiffieHellmanMerkle(prime, g)
-    val s = target.secret(aliceKey, bobKey)
-    s shouldBe secret
-    val multiplicativeInverse = target.multiplicativeInverse(s)
+    val sy = target.secret(aliceKey, bobKey)
+    sy shouldBe Success(secret)
+    val multiplicativeInverse = target.multiplicativeInverse(sy.get)
     multiplicativeInverse shouldBe 9
-    val product: BigInt = s * multiplicativeInverse
+    val product: BigInt = sy.get * multiplicativeInverse
     product.mod(prime.toBigInt) shouldBe 1
     product shouldBe 162
     product shouldBe (prime.toBigInt * 7 + 1)
@@ -60,29 +61,10 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
 
   it should "encrypt" in {
     val target = DiffieHellmanMerkle(prime, g)
-    val s = target.secret(aliceKey, bobKey)
-    s shouldBe secret
-    target.encrypt(plainText)(s) shouldBe cipherText
-    val ciphers = for (i <- 1 to 22) yield target.encrypt(i)(s)
+    val sy = target.secret(aliceKey, bobKey)
+    sy shouldBe Success(secret)
+    target.encrypt(plainText)(sy.get) shouldBe cipherText
+    val ciphers = for (i <- 1 to 22) yield target.encrypt(i)(sy.get)
     println(ciphers)
-  }
-
-  // FIXME
-  ignore should "modPow 2" in {
-    val inverseSecret = DiffieHellmanMerkle(prime, g).multiplicativeInverse(secret)
-    inverseSecret shouldBe 9
-    val cipherText = prime.modPow(plainText, secret)
-    cipherText shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
-    val recoveredText: BigInt = prime.modPow(cipherText, inverseSecret)
-    recoveredText shouldBe cipherText.pow(inverseSecret.toInt).mod(prime.toBigInt)
-    recoveredText shouldBe plainText
-  }
-
-  // FIXME
-  ignore should "decrypt" in {
-    val target = DiffieHellmanMerkle(prime, g)
-    val s = target.secret(aliceKey, bobKey)
-    s shouldBe secret
-    target.decrypt(cipherText)(s) shouldBe plainText
   }
 }
