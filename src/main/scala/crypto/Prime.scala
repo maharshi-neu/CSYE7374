@@ -3,7 +3,7 @@ package crypto
 import crypto.Prime.{primeFactorMultiplicity, totient}
 import crypto.Primes.*
 import java.math.BigInteger
-import scala.annotation.{tailrec, targetName}
+import scala.annotation.{tailrec, targetName, unused}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
 
@@ -127,6 +127,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if this number is prime.
    */
+  @unused
   def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
@@ -135,6 +136,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    * @param x a BigInt.
    * @return x % n
    */
+  @unused
   def remainder(x: BigInt): BigInt = x % n
 
   /**
@@ -149,6 +151,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return n.toDouble
    */
+  @unused
   def toDouble: Double = n.toDouble
 
   /**
@@ -156,6 +159,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return Some(n) if it fits as a Long, otherwise None.
    */
+  @unused
   def toLongOption: Option[Long] = if (n.abs < Long.MaxValue) Some(n.toLong) else None
 
   /**
@@ -314,7 +318,7 @@ object Prime {
 
     def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
       if (n.toBigInt == 1) Map()
-      else if (hundredPrimes.contains(n)) Map(n -> 1)
+      else if (n.isProbablePrime) Map(n -> 1)
       else {
         val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
         val (count, dividend) = factorCount(n.toBigInt, nps.head)
@@ -323,22 +327,6 @@ object Prime {
 
     factorsR(Prime(x), allPrimes)
   }
-
-  /**
-   * Method to yield the prime factors of x.
-   * FIXME this doesn't work correctly.
-   *
-   * NOTE that this method can be quite expensive.
-   *
-   * @param x a positive BigInt.
-   * @return a Seq[Prime]
-   */
-  def factors(x: BigInt): Seq[Prime] = if (x > 0) {
-    val max = math.sqrt(x.toDouble)
-    val candidates = Primes.probablePrimes(_.toDouble <= max)
-    candidates filter (f => x % f.n == 0)
-  }
-  else throw PrimeException(s"factors: x is not positive: $x")
 
   val commaFormatter = new java.text.DecimalFormat("#,###")
 
