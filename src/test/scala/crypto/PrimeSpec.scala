@@ -58,13 +58,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime(71).Lucas shouldBe true
   }
 
-  // This implementation (factors) is really slow and, worse, is wrong.
-  ignore should "implement factors" in {
-    Prime.factors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
-    //    Prime.factors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
-    Prime.factors(7894609062L) shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
-  }
-
   it should "implement primeFactors" in {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
@@ -81,7 +74,7 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
 
   it should "implement Lucas()" in {
     val p = Prime(71)
-    val pMinus1: BigInt = p.p - 1
+    val pMinus1: BigInt = p.n - 1
     val factors = Prime.primeFactors(pMinus1)
     p.Lucas(pMinus1, factors)(17) shouldBe false
     p.Lucas(pMinus1, factors)(11) shouldBe true

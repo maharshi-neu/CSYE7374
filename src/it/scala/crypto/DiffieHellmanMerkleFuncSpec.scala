@@ -16,8 +16,8 @@ class DiffieHellmanMerkleFuncSpec extends AnyFlatSpec with should.Matchers {
 
   it should "construct" in {
     val target = DiffieHellmanMerkle(prime23, g)
-    target.p shouldBe prime23
-    target.g shouldBe g
+    target.modulus shouldBe prime23
+    target.generator shouldBe g
   }
 
   it should "not construct" in {
