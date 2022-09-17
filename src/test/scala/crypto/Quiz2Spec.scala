@@ -31,7 +31,7 @@ class Quiz2Spec extends AnyFlatSpec with should.Matchers {
     val quiz2: Quiz2 = Quiz2(new Random())
     val xs = quiz2.randomGaussian.take(n).to(List)
     val mean = xs.sum / n
-    mean shouldBe 0.0 +- 0.2
+    mean shouldBe 0.0 +- 0.25
     val squares = xs map (_ - mean) map square
     val variance = squares.sum / n
     val stdDev = math.sqrt(variance)

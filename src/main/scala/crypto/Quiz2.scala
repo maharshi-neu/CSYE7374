@@ -14,7 +14,7 @@ case class Quiz2(random: Random) {
    *
    * Use the boxMuller method (as a function) to achieve this.
    */
-  def randomGaussian: LazyList[Double] = randomComplex flatMap { c => val x = c.toCartesian; x.toSeq.to(LazyList) } // TODO using randomComplex
+  def randomGaussian: LazyList[Double] = randomComplex flatMap { c => val x = c.toCartesian; x.toSeq.to(LazyList) }
 
   /**
    * Method to invoke the Box-Muller technique to generate an independent pair of Gaussian-distributed random numbers.
