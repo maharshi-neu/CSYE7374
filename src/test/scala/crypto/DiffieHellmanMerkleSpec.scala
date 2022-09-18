@@ -40,4 +40,22 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
     val target = DiffieHellmanMerkle(prime, g)
     target.secret(aliceKey, bobKey) shouldBe Success(secret)
   }
+
+  it should "get the multiplicative inverse" in {
+    val target = DiffieHellmanMerkle(prime, g)
+    val sy = target.secret(aliceKey, bobKey)
+    sy shouldBe Success(secret)
+    val multiplicativeInverse = target.multiplicativeInverse(sy.get)
+    multiplicativeInverse shouldBe 9
+    val product: BigInt = sy.get * multiplicativeInverse
+    product.mod(prime.toBigInt) shouldBe 1
+    product shouldBe 162
+    product shouldBe (prime.toBigInt * 7 + 1)
+  }
+
+  it should "modPow" in {
+    val z = prime.modPow(plainText, secret)
+    z shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
+    z shouldBe cipherText
+  }
 }
