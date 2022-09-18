@@ -3,6 +3,7 @@ package crypto
 import crypto.Goldbach.goldbach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.util.Success
 
 class GoldbachSpec extends AnyFlatSpec with should.Matchers {

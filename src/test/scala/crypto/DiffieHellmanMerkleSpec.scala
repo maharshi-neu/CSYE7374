@@ -58,13 +58,4 @@ class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
     z shouldBe plainText.pow(secret.toInt).mod(prime.toBigInt)
     z shouldBe cipherText
   }
-
-  it should "encrypt" in {
-    val target = DiffieHellmanMerkle(prime, g)
-    val sy = target.secret(aliceKey, bobKey)
-    sy shouldBe Success(secret)
-    target.encrypt(plainText)(sy.get) shouldBe cipherText
-    val ciphers = for (i <- 1 to 22) yield target.encrypt(i)(sy.get)
-    println(ciphers)
-  }
 }

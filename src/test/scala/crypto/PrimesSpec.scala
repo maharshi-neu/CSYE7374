@@ -1,5 +1,6 @@
 package crypto
 
+import crypto.Primes.piApprox
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import scala.language.postfixOps
@@ -56,13 +57,6 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime(71).Lucas shouldBe true
   }
 
-  // This implementation (factors) is really slow and, worse, is wrong.
-  ignore should "implement factors" in {
-    Prime.factors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
-    //    Prime.factors(70906) shouldBe Seq(2, 11, 11, 293).map(Prime(_))
-    Prime.factors(7894609062L) shouldBe Seq(2, 3, 67, 1721, 11411).map(Prime(_))
-  }
-
   it should "implement primeFactors" in {
     Prime.primeFactors(23) shouldBe Seq(23).map(Prime(_))
     Prime.primeFactors(70) shouldBe Seq(2, 5, 7).map(Prime(_))
@@ -74,6 +68,7 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
     Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
     Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
+    Prime.primeFactorMultiplicity(663168016) shouldBe Map(Prime(2) -> 4, Prime(7) -> 1, Prime(5987) -> 1, Prime(43) -> 1, Prime(23) -> 1)
     Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
   }
 
@@ -229,6 +224,27 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     lessThan1000.size shouldBe 168
     lessThan1000.last shouldBe Prime(997)
   }
+
+  behavior of "piApprox"
+
+  it should "be correct for specific values" in {
+    // 5 (2 3 5 7 11)
+    piApprox(11) shouldBe 5.0 +- 1
+    // 9 (... 13 17 19 23)
+    piApprox(23) shouldBe 9.0 +- 2
+    // 11 (... 29 31)
+    piApprox(31) shouldBe 11.0 +- 2
+    // 13 (... 37 41)
+    piApprox(41) shouldBe 13.0 +- 2
+  }
+
+  it should "be correct for 10^x" in {
+    piApprox(100) shouldBe 25.0 +- 3.5
+    piApprox(1000) shouldBe 168.0 +- 24
+    piApprox(10000) shouldBe 1229.0 +- 144
+  }
+
+  behavior of "MillerRabin"
 
   it should "get small primes < 1000" in {
     val lessThan1000: Seq[Prime] = Primes.smallPrimes(1000)

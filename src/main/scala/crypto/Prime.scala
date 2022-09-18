@@ -3,7 +3,7 @@ package crypto
 import crypto.Prime.{primeFactorMultiplicity, totient}
 import crypto.Primes.*
 import java.math.BigInteger
-import scala.annotation.{tailrec, targetName}
+import scala.annotation.{tailrec, targetName, unused}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
 
@@ -127,6 +127,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if this number is prime.
    */
+  @unused
   def validate: Boolean = isProbablePrime && Prime.primeFactors(n).forall(_ == this)
 
   /**
@@ -135,6 +136,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    * @param x a BigInt.
    * @return x % n
    */
+  @unused
   def remainder(x: BigInt): BigInt = x % n
 
   /**
@@ -149,6 +151,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return n.toDouble
    */
+  @unused
   def toDouble: Double = n.toDouble
 
   /**
@@ -156,6 +159,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return Some(n) if it fits as a Long, otherwise None.
    */
+  @unused
   def toLongOption: Option[Long] = if (n.abs < Long.MaxValue) Some(n.toLong) else None
 
   /**
@@ -174,8 +178,11 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    */
   def next: Prime = {
     // Lazy list of numbers greater than n, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
-    val ys: LazyList[BigInt] = bigInts(n + 1).filter { x => x == 2 || x == 5 ||
-      { val r = x % 10; r == 1 || r == 3 || r == 7 || r == 9 }
+    val ys: LazyList[BigInt] = bigInts(n + 1).filter { x =>
+      x == 2 || x == 5 || {
+        val r = x % 10;
+        r == 1 || r == 3 || r == 7 || r == 9
+      }
     }
 
     // Lazy list of probable primes larger than n.
@@ -314,7 +321,7 @@ object Prime {
 
     def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
       if (n.toBigInt == 1) Map()
-      else if (hundredPrimes.contains(n)) Map(n -> 1)
+      else if (n.isProbablePrime) Map(n -> 1)
       else {
         val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
         val (count, dividend) = factorCount(n.toBigInt, nps.head)
@@ -323,22 +330,6 @@ object Prime {
 
     factorsR(Prime(x), allPrimes)
   }
-
-  /**
-   * Method to yield the prime factors of x.
-   * FIXME this doesn't work correctly.
-   *
-   * NOTE that this method can be quite expensive.
-   *
-   * @param x a positive BigInt.
-   * @return a Seq[Prime]
-   */
-  def factors(x: BigInt): Seq[Prime] = if (x > 0) {
-    val max = math.sqrt(x.toDouble)
-    val candidates = Primes.probablePrimes(_.toDouble <= max)
-    candidates filter (f => x % f.n == 0)
-  }
-  else throw PrimeException(s"factors: x is not positive: $x")
 
   val commaFormatter = new java.text.DecimalFormat("#,###")
 
@@ -474,10 +465,15 @@ object Prime {
 }
 
 object Primes {
+
   /**
-   * Random source.
+   * Method to yield the "prime counting function" aka "piApprox" for a given number.
+   * The result is an approximation to the number of primes not greater than x.
+   *
+   * @param x the ordinal position in the list of primes of the prime number required.
+   * @return an approximation to the kth prime number.
    */
-  val random: java.util.Random = new java.util.Random()
+  def piApprox(x: BigInt): Double = x.toDouble / math.log(x.toDouble)
 
   /**
    * Create a lazy list of BigInts starting with x.
@@ -509,64 +505,69 @@ object Primes {
    * @throws PrimeException if f does not yield finite list.
    */
   def probablePrimes(f: Prime => Boolean): List[Prime] = {
-      val result = probablePrimesLazy(f)
-      if (result.knownSize == -1) result.toList
-      else throw PrimeException("probablyPrimes: filter does not yield finite list")
+    val result = probablePrimesLazy(f)
+    if (result.knownSize == -1) result.toList
+    else throw PrimeException("probablyPrimes: filter does not yield finite list")
   }
 
-    /**
-     * Method to implement Eratosthenes Sieve.
-     *
-     * NOTE: this method uses an (mutable) Array and a mutable variable.
-     *
-     * @param m the largest number that we could get back as a prime.
-     * @return a list of Prime numbers.
-     */
-    def eSieve(m: Int): List[Prime] = {
-        val sieve = new Array[Boolean](m + 1)
-        var p = 2
-        while (p < m) {
-            for (i <- 2 to m / p) {
-                val j = i * p
-                if (!sieve(j)) sieve(j) = true
-            }
-            p += 1
-            while (p <= m && sieve(p)) p += 1
-        }
-        val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot((x, _) => x)
-        for (x <- result) yield Prime(x._2)
+  /**
+   * Method to implement Eratosthenes Sieve.
+   *
+   * NOTE: this method uses an (mutable) Array and a mutable variable.
+   *
+   * @param m the largest number that we could get back as a prime.
+   * @return a list of Prime numbers.
+   */
+  def eSieve(m: Int): List[Prime] = {
+    val sieve = new Array[Boolean](m + 1)
+    var p = 2
+    while (p < m) {
+      for (i <- 2 to m / p) {
+        val j = i * p
+        if (!sieve(j)) sieve(j) = true
+      }
+      p += 1
+      while (p <= m && sieve(p)) p += 1
     }
+    val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot((x, _) => x)
+    for (x <- result) yield Prime(x._2)
+  }
 
-    /**
-     * Method to yield a lazy list of all probable primes.
-     *
-     * @return a LazyList[Prime].
-     */
-    lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
+  /**
+   * Method to yield a lazy list of all probable primes.
+   *
+   * @return a LazyList[Prime].
+   */
+  lazy val allPrimes: LazyList[Prime] = probablePrimesLazy(_ => true)
 
-    /**
-     * Method to yield a lazy list of all probable primes smaller than x.
-     *
-     * @return a LazyList[Prime].
-     */
-    def smallPrimes(x: BigInt): LazyList[Prime] = allPrimes takeWhile {
-        _.n < x
-    }
+  /**
+   * Method to yield a lazy list of all probable primes smaller than x.
+   *
+   * @return a LazyList[Prime].
+   */
+  def smallPrimes(x: BigInt): LazyList[Prime] = allPrimes takeWhile {
+    _.n < x
+  }
 
-    /**
-     * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
-     */
-    val carmichael: SortedSet[BigInt] =
-        SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
+  /**
+   * The first Carmichael numbers, i.e numbers which satisfy Fermat's little theorem but are composite.
+   */
+  val carmichael: SortedSet[BigInt] =
+    SortedSet(561, 1105, 1729, 2465, 2821, 6601, 8911, 10585, 15841, 29341, 41041, 46657, 52633, 62745, 63973, 75361, 101101, 115921, 126217, 162401, 172081, 188461, 252601, 278545, 294409, 314821, 334153, 340561, 399001, 410041, 449065, 488881, 512461).map(BigInt(_))
 
-    /**
-     * The first 100 true primes.
-     */
+  /**
+   * The first 100 true primes.
+   */
   val hundredPrimes: SortedSet[Prime] =
     SortedSet(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
       283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541).map(Prime(_))
 
   private val prime101 = 547
+
+  /**
+   * Random source.
+   */
+  private val random: java.util.Random = new java.util.Random()
 
   /**
    * Method to yield a lazy list of probable primes as long as they satisfy the predicate f.
@@ -640,13 +641,13 @@ object MillerRabin {
     else s"invalid action: $action"
 
   private def decompose(n: BigInt) = {
-      var d: BigInt = n - 1
-      var s: Int = 0
-      while (2 |> d) {
-          d >>= 1
-          s += 1
-      }
-      (d, s)
+    var d: BigInt = n - 1
+    var s: Int = 0
+    while (2 |> d) {
+      d >>= 1
+      s += 1
+    }
+    (d, s)
   }
 }
 

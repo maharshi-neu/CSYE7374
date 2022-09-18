@@ -7,7 +7,7 @@ import scala.util.Random
 
 
 trait RawCipher {
-    def encrypt(plain: BigInt): BigInt
+  def encrypt(plain: BigInt): BigInt
 
     def decrypt(cipher: BigInt): BigInt
 }

@@ -4,6 +4,7 @@ import crypto.CaesarCipher.{doShift, preparePlainText}
 import crypto.Histogram
 import crypto.Histogram.{English, shiftedEnglishHistograms}
 import parse.EnglishParser
+import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -29,7 +30,7 @@ object CaesarCipher {
      * @return a string consisting only of the characters A...Z.
      */
     def preparePlainText(w: CharSequence): String = {
-        val sb = new StringBuilder()
+        val sb = new mutable.StringBuilder()
         val chars = w.toString.toUpperCase
         for (m <- """\w+""".r findAllMatchIn chars; x <- m.group(0)) sb.append(x)
         sb.toString()
