@@ -194,6 +194,28 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
   }
 
+  it should "get first 100 primes" in {
+    val first100: Seq[Prime] = Primes.allPrimes.take(100).toList
+    first100.last shouldBe Prime(541)
+  }
+
+  it should "get first 1000 primes" in {
+    val first1000: Seq[Prime] = Primes.allPrimes.take(1000).toList
+    first1000.last shouldBe Prime(7919)
+  }
+
+  it should "get primes < 1000" in {
+    val lessThan1000: Seq[Prime] = Primes.probablePrimes(_.n < 1000)
+    lessThan1000.size shouldBe 168
+    lessThan1000.last shouldBe Prime(997)
+  }
+
+  it should "test MillerRabin" in {
+    MillerRabin.millerRabinTester("test", "7919") shouldBe "PRIME"
+    MillerRabin.millerRabinTester("test", "516119616549881") shouldBe "PRIME"
+    MillerRabin.millerRabinTester("test", "516119616549887") shouldBe "COMPOSITE"
+  }
+
   it should "totient" in {
     Prime.totient(1) shouldBe 1
     Prime.totient(2) shouldBe 1

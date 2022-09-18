@@ -271,4 +271,30 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
     MillerRabin.millerRabinTester("test", "516119616549881") shouldBe "PRIME"
     MillerRabin.millerRabinTester("test", "516119616549887") shouldBe "COMPOSITE"
   }
+
+  it should "totient" in {
+    Prime.totient(1) shouldBe 1
+    Prime.totient(2) shouldBe 1
+    Prime.totient(3) shouldBe 2
+    Prime.totient(4) shouldBe 2
+    Prime.totient(5) shouldBe 4
+    Prime.totient(6) shouldBe 2
+    Prime.totient(7) shouldBe 6
+    Prime.totient(8) shouldBe 4
+    Prime.totient(9) shouldBe 6
+    Prime.totient(10) shouldBe 4
+    Prime.totient(11) shouldBe 10
+    Prime.totient(12) shouldBe 4
+    Prime.totient(14) shouldBe 6
+    Prime.totient(16) shouldBe 8
+    Prime.totient(20) shouldBe 8
+    Prime.totient(30) shouldBe 8
+  }
+  // 1, 1, 2, 2, 4, 2, 6, 4, 6, 4,
+  // 10, 4, 12, 6, 8, 8, 16, 6, 18, 8,
+  // 12, 10, 22, 8, 20, 12, 18, 12, 28, 8,
+  // 30, 16, 20, 16, 24, 12, 36, 18, 24, 16,
+  // 40, 12, 42, 20, 24, 22, 46, 16, 42, 20,
+  // 32, 24, 52, 18, 40, 24, 36, 28, 58, 16,
+  // 60, 30, 36, 32, 48, 20, 66, 32, 44, 24
 }
