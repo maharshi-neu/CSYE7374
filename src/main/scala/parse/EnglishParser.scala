@@ -2,6 +2,7 @@ package parse
 
 import crypto.CryptoTools
 import parse.EnglishParser.toLowerCase
+
 import scala.util.Try
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers

@@ -1,8 +1,9 @@
 package crypto
 
-import java.math.BigInteger
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
+import java.math.BigInteger
 import scala.util.Success
 
 class DiffieHellmanMerkleSpec extends AnyFlatSpec with should.Matchers {
