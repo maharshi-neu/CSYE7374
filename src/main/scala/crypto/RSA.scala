@@ -45,8 +45,8 @@ object RSA {
         val totient: BigInt = reducedTotient(n)
         val primes: List[Prime] = smallPrimes(totient).toList.filter(p => p.validate).filter(p => p.isCoprimeTo(totient))
         val e: Prime = primes(f(random, primes.length))
-        val d: Prime = ??? // TODO implement me
-        val z = ??? // TODO implement me
+        val d: Prime = Prime(2) // TODO implement me
+        val z = 1 // TODO implement me
         assert(z == 1)
 
         val publicKey = Key(n, e)

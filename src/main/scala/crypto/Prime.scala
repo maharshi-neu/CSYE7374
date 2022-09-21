@@ -3,9 +3,11 @@ package crypto
 import crypto.Prime.{primeFactorMultiplicity, totient}
 import crypto.Primes.*
 import java.math.BigInteger
+import java.util.function.Consumer
 import scala.annotation.{tailrec, targetName, unused}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
+import util.Benchmark
 
 /**
  * Class to represent a (possible) prime number.
@@ -679,3 +681,12 @@ object Goldbach {
 }
 
 case class PrimeException(str: String) extends Exception(str)
+
+object Main extends App {
+
+  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, new Consumer[BigInteger] {
+    def accept(t: BigInteger): Unit = Primes.eSieve(t.intValue())
+  }, null)
+  val time: Double = benchmark.run(BigInteger.valueOf(1000000), 10)
+  println(s"Eratosthenes Sieve for 1000000 takes $time millisecs")
+}
