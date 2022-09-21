@@ -1,34 +1,92 @@
 package crypto
 
 import crypto.CaesarCipher.doShift
-
 import scala.annotation.unused
 
 case class Histogram(map: Map[Char, Int]) {
-  def recordChar(x: Char): Histogram = Histogram(map + (x -> (map.getOrElse(x, 0) + 1)))
+    /**
+     * Method to record instance of this character in this Histogram.
+     *
+     * @param x the character to record.
+     * @return a new Histogram.
+     */
+    def recordChar(x: Char): Histogram = Histogram(map + (x -> (map.getOrElse(x, 0) + 1)))
 
-  def rotate(f: Char => Char): Histogram = Histogram(for ((x, count) <- map) yield f(x) -> count)
+    /**
+     * Method to "rotate" this Histogram such that each character is transformed into another character.
+     *
+     * @param f the transformation function.
+     * @return a new Histogram.
+     */
+    def rotate(f: Char => Char): Histogram = Histogram(for ((x, count) <- map) yield f(x) -> count)
 
-  def total: Int = map.values.sum
+    /**
+     * Method to yield that sum of the values in this Histogram.
+     *
+     * @return the total.
+     */
+    lazy val total: Int = map.values.sum
 
-  def comparer(h: Histogram): Double = {
-    val thisTotal: Double = this.total
-    val thatTotal: Double = h.total
-    val diff = for ((y, z) <- map.values zip h.map.values; q = y / thisTotal - z / thatTotal) yield q * q
-    diff.sum
-  }
+    /**
+     * Method to compare this Histogram with another.
+     *
+     * @param h the Histogram with which to compare this.
+     * @return a measure of the difference between this and h.
+     */
+    def comparer(h: Histogram): Double = {
+        val thisTotal: Double = this.total
+        val thatTotal: Double = h.total
+        val diff = for ((y, z) <- map.values zip h.map.values; q = y / thisTotal - z / thatTotal) yield q * q
+        diff.sum
+    }
 
-  def get(key: Char): Option[Int] = map.get(key)
+    /**
+     * Method to get the number of usages of the given key character as an Option[Int].
+     *
+     * @param key the character.
+     * @return an optional integer value.
+     */
+    def get(key: Char): Option[Int] = map.get(key)
 
-  def getOrElse[V1 >: Int](key: Char, default: => V1): V1 = map.getOrElse(key, default)
+    /**
+     * Method to get the number of usages of the given key character, with a default value.
+     *
+     * @param key     the character.
+     * @param default the value to be returned if key is not present in this Histogram.
+     * @tparam X the type of the value which will be returned: a supertype of Int.
+     * @return a value of type X.
+     */
+    def getOrElse[X >: Int](key: Char, default: => X): X = map.getOrElse(key, default)
 
-  def keys: Iterable[Char] = map.keys
+    /**
+     * Method to get all the characters from this Histogram.
+     *
+     * @return an Iterable of Char.
+     */
+    def keys: Iterable[Char] = map.keys
 
-  def values: Iterable[Int] = map.values
+    @unused
+    /**
+     * Method to get all the count values from this Histogram.
+     *
+     * @return an Iterable of Int.
+     */
+    def values: Iterable[Int] = map.values
 
-  def contains(key: Char): Boolean = map.contains(key)
+    /**
+     * Method to determine if key is present in this Histogram.
+     *
+     * @param key the character.
+     * @return true if present, otherwise false.
+     */
+    def contains(key: Char): Boolean = map.contains(key)
 
-  def keySet: Set[Char] = map.keySet
+    /**
+     * Method to get the characters as a Set.
+     *
+     * @return a Set[Char].
+     */
+    def keySet: Set[Char] = map.keySet
 }
 
 object Histogram {
