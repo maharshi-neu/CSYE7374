@@ -1,5 +1,6 @@
 package crypto
 
+import crypto.Prime.multiplicativeInverse
 import crypto.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -146,6 +147,15 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     p7.multiplicativeInverse(12) shouldBe 10
     p9.multiplicativeInverse(18) shouldBe 9
     p9.multiplicativeInverse(9) shouldBe 18
+  }
+
+  it should "multiplicativeInverse1" in {
+    multiplicativeInverse(3, BigInt(11)) shouldBe 4
+    multiplicativeInverse(4, BigInt(11)) shouldBe 3
+    multiplicativeInverse(10, BigInt(17)) shouldBe 12
+    multiplicativeInverse(12, BigInt(17)) shouldBe 10
+    multiplicativeInverse(18, BigInt(23)) shouldBe 9
+    multiplicativeInverse(9, BigInt(23)) shouldBe 18
   }
 
   ignore should "multiplicativeInverse2" in {
