@@ -3,7 +3,6 @@ package crypto
 import crypto.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
@@ -38,15 +37,42 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
   }
 
+  /**
+   * 1 (not actually a prime number)
+   */
   private val p0: Prime = Prime(1) // Not actually a prime number
-  private val p1: Prime = allPrimes.head // 2
-  private val p2: Prime = allPrimes(1) // 3
-  private val p3: Prime = allPrimes(2) // 5
-  private val p4: Prime = allPrimes(3) // 7
-  private val p5: Prime = allPrimes(4) // 11
-  private val p6: Prime = allPrimes(5) // 13
-  private val p7: Prime = allPrimes(6) // 17
-  private val p9: Prime = allPrimes(8) // 23
+  /**
+   * 2
+   */
+  private val p1: Prime = allPrimes.head
+  /**
+   * 3
+   */
+  private val p2: Prime = allPrimes(1)
+  /**
+   * 5
+   */
+  private val p3: Prime = allPrimes(2)
+  /**
+   * 7
+   */
+  private val p4: Prime = allPrimes(3)
+  /**
+   * 11
+   */
+  private val p5: Prime = allPrimes(4)
+  /**
+   * 13
+   */
+  private val p6: Prime = allPrimes(5)
+  /**
+   * 17
+   */
+  private val p7: Prime = allPrimes(6)
+  /**
+   * 23
+   */
+  private val p9: Prime = allPrimes(8)
 
   it should "fermat" in {
     p4.fermat(2) shouldBe 1

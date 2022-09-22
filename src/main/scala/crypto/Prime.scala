@@ -46,14 +46,14 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   def bits: Int = n.bitLength
 
   /**
-   * Determine the multiplicative inverse of a, modulo this prime.
+   * Determine the multiplicative inverse of a, modulo n.
    *
-   * NOTE: for a prime number, the multiplicativeInverse is modPow(a, n - 2); for other numbers, we use the modInverse method on BigInt.
+   * NOTE: when this is a prime number, the multiplicativeInverse is modPow(a, n - 2); for non-prime moduli, we use the modInverse method on BigInt.
    *
    * @param a the value whose multiplicative inverse we require.
-   * @return a number z such that z a is congruent to 1 modulo this prime.
+   * @return a number z such that z a is congruent to 1 modulo n.
    */
-  def multiplicativeInverse(a: BigInt): BigInt = modPow(a, n - 2)
+  def multiplicativeInverse(a: BigInt): BigInt = if isProbablePrime then modPow(a, n - 2) else a.modInverse(n)
 
   /**
    * Method to determine if this is indeed a probably prime.
@@ -684,9 +684,7 @@ case class PrimeException(str: String) extends Exception(str)
 
 object Main extends App {
 
-  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, new Consumer[BigInteger] {
-    def accept(t: BigInteger): Unit = Primes.eSieve(t.intValue())
-  }, null)
+  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, (t: BigInteger) => Primes.eSieve(t.intValue()), null)
   val time: Double = benchmark.run(BigInteger.valueOf(1000000), 10)
   println(s"Eratosthenes Sieve for 1000000 takes $time millisecs")
 }
