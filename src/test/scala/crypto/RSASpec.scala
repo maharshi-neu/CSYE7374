@@ -26,8 +26,8 @@ class RSASpec extends AnyFlatSpec with should.Matchers {
 
   it should "apply" in {
     val target = wikiRSA
-    target.publicKey shouldBe Key(3233, Prime(17))
-    target.privateKey shouldBe Key(3233, Prime(413))
+    target.publicKey shouldBe Key(3233, 17)
+    target.privateKey shouldBe Key(3233, 413)
   }
 
   // FIXME
