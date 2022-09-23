@@ -78,12 +78,11 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return true if for any random value a such that 0 < a < n - 1, Lucas(n-1, factors)(a) is true where factors are the prime factors of n - 1.
    */
-  def Lucas: Boolean = {
+  def Lucas: Boolean =
     val factors = Prime.primeFactors(n - 1)
     val as: Seq[BigInt] = Prime.getRandomValues(n)
     // NOTE that as will contain duplicates. We should try to eliminate the duplicates.
     as.exists(Lucas(n - 1, factors)(_))
-  }
 
   /**
    * Method to apply the Lucas test of primality.
@@ -102,13 +101,12 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return
    */
-  def primitiveRoot: BigInt = {
+  def primitiveRoot: BigInt =
     val as: Seq[BigInt] = Prime.getRandomValues(n)
     as.find(a => fermat(a) == 1 && testPrimitiveRoot(a)) match {
       case Some(a) => a
       case None => throw PrimeException(s"primitiveRoot: failed to find primitive root for $this (is it prime?)")
     }
-  }
 
   /**
    * Method to test whether a BigInt is a primitive root of this Prime.
@@ -161,14 +159,14 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    * @return Some(n) if it fits as a Long, otherwise None.
    */
   @unused
-  def toLongOption: Option[Long] = if (n.abs < Long.MaxValue) Some(n.toLong) else None
+  def toLongOption: Option[Long] = if n.abs < Long.MaxValue then Some(n.toLong) else None
 
   /**
    * Optionally get the value of this prime as an Int.
    *
    * @return Some(n) if it fits as an Int, otherwise None.
    */
-  def toIntOption: Option[Int] = if (n.abs < Int.MaxValue) Some(n.toInt) else None
+  def toIntOption: Option[Int] = if n.abs < Int.MaxValue then Some(n.toInt) else None
 
   /**
    * Get the next probable prime number after this one.
@@ -177,7 +175,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * @return a probable prime which is greater than this.
    */
-  def next: Prime = {
+  def next: Prime =
     // Lazy list of numbers greater than n, that could conceivably be primes: viz. 2, 5, and all numbers ending with 1, 3, 7, or 9.
     val ys: LazyList[BigInt] = bigInts(n + 1).filter { x =>
       x == 2 || x == 5 || {
@@ -190,7 +188,6 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
 
     // Return the first probable prime.
     Prime(xs.head)
-  }
 
   /**
    * Method to compare this Prime with that Prime.
@@ -312,7 +309,7 @@ object Prime {
    *
    * @return a Map of Prime -=> Int where the Int represents the number of times the factor is multiplied.
    */
-  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] = {
+  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] =
     def factorCount(n: BigInt, p: Prime): (Int, Prime) =
       if (n % p.toBigInt != 0) (0, Prime(n))
       else factorCount(n / p.toBigInt, p) match {
@@ -329,7 +326,6 @@ object Prime {
       }
 
     factorsR(Prime(x), allPrimes)
-  }
 
   val commaFormatter = new java.text.DecimalFormat("#,###")
 
@@ -344,7 +340,7 @@ object Prime {
    * @return a Prime whose value may or may not be a Prime number.
    * @throws PrimeException if n is not positive.
    */
-  def apply(p: BigInt): Prime = if (p > 0) new Prime(p) else throw PrimeException(s"prime must be positive ($p)")
+  def apply(p: BigInt): Prime = if p > 0 then new Prime(p) else throw PrimeException(s"prime must be positive ($p)")
 
   /**
    * Method to create a (probable) Prime from a String.
@@ -435,11 +431,10 @@ object Prime {
   def isCarmichaelNumber(n: BigInt): Boolean =
     carmichael.contains(n) || !hundredPrimes.contains(Prime(n)) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
 
-  private def carmichaelTheoremApplies(n: BigInt) = {
+  private def carmichaelTheoremApplies(n: BigInt) =
     val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
     val tests = for ((p, r) <- factors) yield r == 1 && (n - 1) % (p.n - 1) == 0
     factors.size > 2 && tests.forall(p => p)
-  }
 
   /**
    * XXX Adapted from Scala 99: http://aperiodic.net/phil/scala/s-99/
@@ -456,12 +451,11 @@ object Prime {
     inner(Nil, n)
   }
 
-  private def getRandomValues(p: BigInt): Seq[BigInt] = {
+  private def getRandomValues(p: BigInt): Seq[BigInt] =
     val pMinus1 = p - 1
     val n = 20
     if (pMinus1 < n) Range(2, p.toInt).map(BigInt(_))
     else RandomState.lazyList(System.nanoTime()).map(_.value(pMinus1 - 1) + 2) take n
-  }
 }
 
 object Primes {
@@ -504,11 +498,10 @@ object Primes {
    * @return a List[Prime] where each element satisfies the predicate f.
    * @throws PrimeException if f does not yield finite list.
    */
-  def probablePrimes(f: Prime => Boolean): List[Prime] = {
+  def probablePrimes(f: Prime => Boolean): List[Prime] =
     val result = probablePrimesLazy(f)
     if (result.knownSize == -1) result.toList
     else throw PrimeException("probablyPrimes: filter does not yield finite list")
-  }
 
   /**
    * Method to implement Eratosthenes Sieve.
@@ -518,7 +511,7 @@ object Primes {
    * @param m the largest number that we could get back as a prime.
    * @return a list of Prime numbers.
    */
-  def eSieve(m: Int): List[Prime] = {
+  def eSieve(m: Int): List[Prime] =
     val sieve = new Array[Boolean](m + 1)
     var p = 2
     while (p < m) {
@@ -531,7 +524,6 @@ object Primes {
     }
     val result: List[(Boolean, Int)] = sieve.to(List).zipWithIndex.drop(2).filterNot((x, _) => x)
     for (x <- result) yield Prime(x._2)
-  }
 
   /**
    * Method to yield a lazy list of all probable primes.
@@ -576,11 +568,10 @@ object Primes {
    * @param f the predicate to be applied to each candidate prime.
    * @return a LazyList[Prime] where each element satisfies the predicate f.
    */
-  private def probablePrimesLazy(f: Prime => Boolean): LazyList[Prime] = {
+  private def probablePrimesLazy(f: Prime => Boolean): LazyList[Prime] =
     def inner(p: Prime): LazyList[Prime] = if (f(p)) p #:: inner(p.next) else LazyList.empty
 
     hundredPrimes.to(LazyList).filter(f) ++ inner(Prime(prime101))
-  }
 }
 
 /**
@@ -590,7 +581,7 @@ object Primes {
  */
 object MillerRabin {
   // This code is attributed to: 'https://www.literateprograms.org/miller-rabin_primality_test__scala_.html'
-  def miller_rabin_pass(a: BigInt, n: BigInt): Boolean = {
+  def miller_rabin_pass(a: BigInt, n: BigInt): Boolean =
     val (d, s) = decompose(n)
     var a_to_power: BigInt = a.modPow(d, n)
     if (a_to_power == 1) return true
@@ -599,7 +590,6 @@ object MillerRabin {
       else a_to_power = (a_to_power * a_to_power) % n
     }
     a_to_power == n - 1
-  }
 
   /**
    * Method (originally called miller_rabin) from "literateprograms" with slight improvements for elegance.
@@ -610,7 +600,7 @@ object MillerRabin {
    * @param n a BigInt.
    * @return true if n is a probable prime with certainty approximately 2.pow(-40)
    */
-  def isProbablePrime(n: BigInt): Boolean = {
+  def isProbablePrime(n: BigInt): Boolean =
     val k = 20
     for (_ <- 1 to k) {
       val rand = new Random()
@@ -621,7 +611,6 @@ object MillerRabin {
       if (!miller_rabin_pass(a, n)) return false
     }
     true
-  }
 
   def millerRabinTester(action: String, number: String): String =
     if (action == "test")
@@ -641,7 +630,7 @@ object MillerRabin {
     }
     else s"invalid action: $action"
 
-  private def decompose(n: BigInt) = {
+  private def decompose(n: BigInt) =
     var d: BigInt = n - 1
     var s: Int = 0
     while (2 |> d) {
@@ -649,7 +638,6 @@ object MillerRabin {
       s += 1
     }
     (d, s)
-  }
 }
 
 object Goldbach {

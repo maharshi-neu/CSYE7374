@@ -4,7 +4,7 @@ package crypto
  * Trait to model the behavior of a cipher.
  *
  */
-trait Cipher {
+trait Cipher:
 
   /**
    * Method to convert plain text into cipher text.
@@ -21,4 +21,4 @@ trait Cipher {
    * @return the plain text.
    */
   def decrypt(cipherText: CharSequence): CharSequence
-}
+
