@@ -25,9 +25,11 @@ case class DiffieHellmanMerkle(modulus: Prime, generator: BigInt) {
         assert(a > 0 && b > 0)
         val ab = getSecret(keyExchange(a))(b)
         val ba = getSecret(keyExchange(b))(a)
-        if (ab == ba) ab
-        else throw PrimeException(s"secret: ab doesn't match ba")
-    }
+        if (ab == ba)
+            ab
+        else
+            throw PrimeException(s"secret: ab doesn't match ba")
+  }
 
     /**
      * Get the modular multiplicative inverse of a number with respect to a prime number.

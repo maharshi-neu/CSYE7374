@@ -41,19 +41,19 @@ object RSA {
         require(p.validate)
         require(q.validate)
 
-    val n: BigInt = p * q
-    val totient: BigInt = reducedTotient(n)
-    val primes: List[Prime] = smallPrimes(totient).toList.filter(p => p.validate).filter(p => p.isCoprimeTo(totient))
-    // NOTE: e does not have to be prime. But, if it is, we don't then have to check if it's relatively prime with totient.
-    // NOTE: e should be relatively small (for efficiency) so, ideally, we should favor the smaller values.
-    val e: Prime = primes(f(random, primes.length))
+        val n: BigInt = p * q
+        val totient: BigInt = reducedTotient(n)
+        val primes: List[Prime] = smallPrimes(totient).toList.filter(p => p.validate).filter(p => p.isCoprimeTo(totient))
+        // NOTE: e does not have to be prime. But, if it is, we don't then have to check if it's relatively prime with totient.
+        // NOTE: e should be relatively small (for efficiency) so, ideally, we should favor the smaller values.
+        val e: Prime = primes(f(random, primes.length))
         val d: BigInt = 2 // TODO implement me
         val de = 1 // TODO implement me
-    //        println(s"RSA: n: $n, e: $e, d: $d, totient: $totient, de: $de")
-    assert(de == 1)
+        //        println(s"RSA: n: $n, e: $e, d: $d, totient: $totient, de: $de")
+        assert(de == 1)
 
-    val publicKey = Key(n, e.n)
-    val privateKey = Key(n, d)
+        val publicKey = Key(n, e.n)
+        val privateKey = Key(n, d)
 
         RSA(publicKey, privateKey)
     }

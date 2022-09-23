@@ -2,7 +2,7 @@ package crypto
 
 import scala.util.{Try, Using}
 
-object CryptoTools {
+object CryptoTools:
 
     //    private val dictionaryFile = "/usr/share/dict/web2"
     private val dictionaryFile = "crypto/english"
@@ -16,13 +16,12 @@ object CryptoTools {
 
     def isEnglishWordExactCase(w: String): Boolean = triedDictionary.map(d => d.contains(w) || d.contains(nameify(w))).getOrElse(false)
 
-    def parseEnglish(w: String): Option[Int] = {
+    def parseEnglish(w: String): Option[Int] =
         val min2 = math.min(w.length, 15)
         val min1 = math.min(w.length, 3)
         val lowerCase = w.toLowerCase
         val result: Seq[Int] = for (prefixLength <- min1 to min2; if isEnglishWordAnyCase(lowerCase.substring(0, prefixLength))) yield prefixLength
         result.headOption
-    }
 
     def nameify(w: String): String = w.head.toUpper + w.tail
-}
+
