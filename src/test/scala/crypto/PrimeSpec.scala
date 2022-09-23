@@ -1,5 +1,6 @@
 package crypto
 
+import crypto.Prime.multiplicativeInverse
 import crypto.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
@@ -37,15 +38,42 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
         Prime.isProbableOddPrime(BigInt("35742549198872617291353508656626642567")) shouldBe true
     }
 
-    private val p0: Prime = Prime(1) // Not actually a prime number
-    private val p1: Prime = allPrimes.head // 2
-    private val p2: Prime = allPrimes(1) // 3
-    private val p3: Prime = allPrimes(2) // 5
-    private val p4: Prime = allPrimes(3) // 7
-    private val p5: Prime = allPrimes(4) // 11
-    private val p6: Prime = allPrimes(5) // 13
-    private val p7: Prime = allPrimes(6) // 17
-    private val p9: Prime = allPrimes(8) // 23
+  /**
+   * 1 (not actually a prime number)
+   */
+  private val p0: Prime = Prime(1) // Not actually a prime number
+  /**
+   * 2
+   */
+  private val p1: Prime = allPrimes.head
+  /**
+   * 3
+   */
+  private val p2: Prime = allPrimes(1)
+  /**
+   * 5
+   */
+  private val p3: Prime = allPrimes(2)
+  /**
+   * 7
+   */
+  private val p4: Prime = allPrimes(3)
+  /**
+   * 11
+   */
+  private val p5: Prime = allPrimes(4)
+  /**
+   * 13
+   */
+  private val p6: Prime = allPrimes(5)
+  /**
+   * 17
+   */
+  private val p7: Prime = allPrimes(6)
+  /**
+   * 23
+   */
+  private val p9: Prime = allPrimes(8)
 
     it should "fermat" in {
         p4.fermat(2) shouldBe 1
@@ -121,19 +149,28 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
         p9.multiplicativeInverse(9) shouldBe 18
     }
 
-    ignore should "multiplicativeInverse2" in {
-        val g = 7
-        val z = p7.modPow(g, 10)
-        z shouldBe 2
-        val y = BigInt(g).pow(10)
-        y shouldBe BigInt(282475249L)
-        val q = y / 17
-        val r = y - q * 17
-        q shouldBe BigInt(16616191L)
-        r shouldBe BigInt(2)
-        y.mod(17) shouldBe 2
-        p7.modPow(z, 12) shouldBe g
-    }
+  it should "multiplicativeInverse1" in {
+    multiplicativeInverse(3, BigInt(11)) shouldBe 4
+    multiplicativeInverse(4, BigInt(11)) shouldBe 3
+    multiplicativeInverse(10, BigInt(17)) shouldBe 12
+    multiplicativeInverse(12, BigInt(17)) shouldBe 10
+    multiplicativeInverse(18, BigInt(23)) shouldBe 9
+    multiplicativeInverse(9, BigInt(23)) shouldBe 18
+  }
+
+  ignore should "multiplicativeInverse2" in {
+    val g = 7
+    val z = p7.modPow(g, 10)
+    z shouldBe 2
+    val y = BigInt(g).pow(10)
+    y shouldBe BigInt(282475249L)
+    val q = y / 17
+    val r = y - q * 17
+    q shouldBe BigInt(16616191L)
+    r shouldBe BigInt(2)
+    y.mod(17) shouldBe 2
+    p7.modPow(z, 12) shouldBe g
+  }
 
     it should "validate" in {
         (Prime(2) validate) shouldBe true
