@@ -4,7 +4,7 @@ import crypto.CaesarCipher.{doShift, preparePlainText}
 import crypto.Histogram
 import crypto.Histogram.{English, shiftedEnglishHistograms}
 import parse.EnglishParser
-
+import scala.annotation.unused
 import scala.collection.mutable
 import scala.util.Try
 import scala.util.matching.Regex
@@ -37,6 +37,13 @@ object CaesarCipher {
     sb.toString()
   }
 
+  @unused
+  /**
+   * Method to render cipher text in a consistent way
+   *
+   * @param w the cipher text
+   * @return a String.
+   */
   def showCipherText(w: String): String = {
     w // TODO put into blocks of five
   }

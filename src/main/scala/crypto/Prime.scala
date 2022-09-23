@@ -1,12 +1,13 @@
 package crypto
 
-import crypto.Prime.{primeFactorMultiplicity, totient}
+import crypto.Prime.{coprime, primeFactorMultiplicity, totient}
 import crypto.Primes.*
-
 import java.math.BigInteger
+import java.util.function.Consumer
 import scala.annotation.{tailrec, targetName, unused}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
+import util.Benchmark
 
 /**
  * Class to represent a (possible) prime number.
@@ -45,14 +46,14 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
   def bits: Int = n.bitLength
 
   /**
-   * Determine the multiplicative inverse of a, modulo this prime.
+   * Determine the multiplicative inverse of a, modulo n.
    *
-   * NOTE: for a prime number, the multiplicativeInverse is modPow(a, n - 2); for other numbers, we use the modInverse method on BigInt.
+   * NOTE: when this is a prime number, the multiplicativeInverse is modPow(a, n - 2); for non-prime moduli, we use the modInverse method on BigInt.
    *
    * @param a the value whose multiplicative inverse we require.
-   * @return a number z such that z a is congruent to 1 modulo this prime.
+   * @return a number z such that z a is congruent to 1 modulo n.
    */
-  def multiplicativeInverse(a: BigInt): BigInt = modPow(a, n - 2)
+  def multiplicativeInverse(a: BigInt): BigInt = if isProbablePrime then modPow(a, n - 2) else Prime.multiplicativeInverse(a, n)
 
   /**
    * Method to determine if this is indeed a probably prime.
@@ -217,7 +218,7 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    * @param x a BigInt.
    * @return true or false.
    */
-  def isCoprimeTo(x: BigInt): Boolean = n.gcd(x) == 1
+  def isCoprimeTo(x: BigInt): Boolean = coprime(x, n)
 
   /**
    * Return a Boolean which is true if a.pow(c/q) != 1 mod n for all q where q is a prime factor of c.
@@ -236,6 +237,15 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
 }
 
 object Prime {
+
+  /**
+   * Method to determine if two BigInts are coprime, i.e. relatively prime.
+   *
+   * @param x a BigInt.
+   * @param p another BigInt.
+   * @return true if the gcd of x and p is 1.
+   */
+  def coprime(x: BigInt, p: BigInt) = p.gcd(x) == 1
 
   /**
    * Method to yield the least common multiple of two numbers.
@@ -291,6 +301,16 @@ object Prime {
       if (p.n == 2 && r >= 3) phi / 2 else phi
   }
 
+  /**
+   * Get the multiplicativeInverse for a BigInt (a) modulus n.
+   *
+   * NOTE: if is assumed that n is not a prime number. Assuming that n is coprime to a, then we return a.modPow(totient(n)-1), otherwise a.modInverse(n).
+   *
+   * @param a the number for which we need the multiplicative inverse.
+   * @param n the modulus.
+   * @return a number x such that ax is congruent to 1, mod n.
+   */
+  def multiplicativeInverse(a: BigInt, n: BigInt): BigInt = if coprime(n, a) then a.modPow(totient(n) - 1, n) else a.modInverse(n)
 
   /**
    * Method to yield the prime factors (with repeated elements).
@@ -668,3 +688,10 @@ object Goldbach {
 }
 
 case class PrimeException(str: String) extends Exception(str)
+
+object Main extends App {
+
+  val benchmark: Benchmark[BigInteger] = new Benchmark[BigInteger]("Eratosthenes", null, (t: BigInteger) => Primes.eSieve(t.intValue()), null)
+  val time: Double = benchmark.run(BigInteger.valueOf(1000000), 10)
+  println(s"Eratosthenes Sieve for 1000000 takes $time millisecs")
+}
