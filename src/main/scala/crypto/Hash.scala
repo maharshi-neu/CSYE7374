@@ -101,7 +101,9 @@ object BlockMessage {
      * @return a BlockMessage where each Block is of length nBytes.
      */
     def apply(block: Array[Byte])(implicit nBytes: Int): BlockMessage =
-        BlockMessage(for (b <- block.grouped(nBytes)) yield Block(pad(nBytes, b)))
+        val length = block.length
+        val blocks: Iterator[Block] = for (b <- block.grouped(nBytes)) yield Block(pad(b))
+        BlockMessage(blocks)
 
     /**
      * Method to construct a BlockMessage from an iterator of Blocks.
@@ -126,11 +128,11 @@ object BlockMessage {
     /**
      * Method to pad a Block which has insufficient length.
      *
-     * @param nBytes the number of bytes required in the resulting Block.
      * @param block  a Block which may need padding.
+     * @param nBytes (implicit) the number of bytes required in the resulting Block.
      * @return a Block which may be a new Block (if the input was short).
      */
-    def pad(nBytes: Int, block: Array[Byte]): Array[Byte] = if block.length == nBytes then block else {
+    def pad(block: Array[Byte])(implicit nBytes: Int): Array[Byte] = if block.length == nBytes then block else {
         val result = new Array[Byte](nBytes)
         System.arraycopy(block, 0, result, 0, block.length)
         for (x <- block.length until nBytes) result(x) = padding

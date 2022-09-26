@@ -30,13 +30,13 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
 
     it should "pad1" in {
         val block = new Array[Byte](8)
-        val result = BlockMessage.pad(10, block)
+        val result = BlockMessage.pad(block)(10)
         result.length shouldBe 10
     }
 
     it should "pad2" in {
         val block = "Hello World!".getBytes
-        val result = BlockMessage.pad(20, block)
+        val result = BlockMessage.pad(block)(20)
         result.length shouldBe 20
         result(0) shouldBe 'H'
         result(19) shouldBe 0
