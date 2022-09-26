@@ -6,10 +6,12 @@ import org.scalatest.matchers.should
 //noinspection DeprecatedAlphanumericInfixCall
 class HashSpec extends AnyFlatSpec with should.Matchers {
 
+    import Block.requiredLength
+
     behavior of "Hash"
 
     it should "hash" in {
-        val iv: Block = Block(LazyList.continually(0xCC) map (_.toByte) take 8)
+        val iv: Block = Block(LazyList.continually(0xCC) map (_.toByte) take 16)
         val target = new Hash() {
             def hash(message: BlockMessage): Block = {
                 import crypto.BlockMessage.Xor
@@ -18,10 +20,10 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
                 message.foldLeft(iv)(compress)
             }
         }
-        target.hash(BlockMessage(8, new Array[Byte](8))).toString shouldBe "cccccccccccccccc"
-        target.hash(BlockMessage(8, iv.bytes)).toString shouldBe "0000000000000000"
-        val xs: Block = Block(LazyList.continually(0xFF) map (_.toByte) take 8)
-        target.hash(BlockMessage(8, xs.bytes)).toString shouldBe "3333333333333333"
+        target.hash(BlockMessage(new Array[Byte](16))).toString shouldBe "cccccccccccccccccccccccccccccccc"
+        target.hash(BlockMessage(iv.bytes)).toString shouldBe "00000000000000000000000000000000"
+        val xs: Block = Block(LazyList.continually(0xFF) map (_.toByte) take 16)
+        target.hash(BlockMessage(xs.bytes)).toString shouldBe "33333333333333333333333333333333"
     }
 
     behavior of "BlockMessage"
@@ -47,7 +49,7 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
 
     it should "toString" in {
         val bm = BlockMessage(8, "A")
-        bm.toString shouldBe "4100000000000000"
+        bm.toString shouldBe "41000000000000000000000000000000"
     }
 
     behavior of "BlockHash"

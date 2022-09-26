@@ -25,7 +25,25 @@ case class Block(bytes: Array[Byte]) {
 }
 
 object Block {
-    def apply(bytes: Seq[Byte]): Block = Block(bytes.toArray)
+    /**
+     * Define the default block length (256 bits).
+     *
+     * Methods such as the apply method of this object (and others) can override the required length simply by passing in an explicit value for length.
+     */
+    implicit val requiredLength: Int = 16
+
+    /**
+     * Method to construct a Block from a Seq[Byte].
+     * The length of the sequence is expected to match the (implicit) length (second parameter set).
+     *
+     * @param bytes  the sequence of bytes to make up the new Block.
+     * @param length (implicit) the expected length of the sequence (bytes).
+     * @return a new Block.
+     */
+    def apply(bytes: Seq[Byte])(implicit length: Int): Block = {
+        require(bytes.length == length, s"Block.apply: required length: $length, actual length: ${bytes.length}")
+        Block(bytes.toArray)
+    }
 }
 
 /**
@@ -72,14 +90,17 @@ case class BlockMessage(blocks: Seq[Block]) {
 }
 
 object BlockMessage {
+
+    import Block.requiredLength
+
     /**
      * Method to construct a BlockMessage from a Block (a byte array of any length).
      *
-     * @param nBytes the number of bytes to be placed in each of the resulting blocks.
      * @param block  an array of bytes of any length.
+     * @param nBytes (implicit) the number of bytes to be placed in each of the resulting blocks.
      * @return a BlockMessage where each Block is of length nBytes.
      */
-    def apply(nBytes: Int, block: Array[Byte]): BlockMessage =
+    def apply(block: Array[Byte])(implicit nBytes: Int): BlockMessage =
         BlockMessage(for (b <- block.grouped(nBytes)) yield Block(pad(nBytes, b)))
 
     /**
@@ -97,7 +118,7 @@ object BlockMessage {
      * @param message a String of characters.
      * @return a BlockMessage.
      */
-    def apply(nBytes: Int, message: String): BlockMessage = apply(nBytes, message.getBytes())
+    def apply(nBytes: Int, message: String): BlockMessage = apply(message.getBytes())
 
     // NOTE: for now, padding is fixed.
     val padding: Byte = 0.toByte
