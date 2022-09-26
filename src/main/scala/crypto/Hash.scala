@@ -114,11 +114,11 @@ object BlockMessage {
     /**
      * Method to construct a BlockMessage from a String.
      *
-     * @param nBytes  the number of bytes to be placed in each of the resulting blocks.
-     * @param message a String of characters.
+     * @param message        a String of characters.
+     * @param requiredLength (implicit) the number of bytes to be placed in each of the resulting blocks.
      * @return a BlockMessage.
      */
-    def apply(nBytes: Int, message: String): BlockMessage = apply(message.getBytes())
+    def apply(message: String)(implicit requiredLength: Int): BlockMessage = apply(message.getBytes())
 
     // NOTE: for now, padding is fixed.
     val padding: Byte = 0.toByte

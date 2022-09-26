@@ -43,13 +43,13 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
     }
 
     it should "apply" in {
-        val b: BlockMessage = BlockMessage.apply(16, "The quick brown fox jumps over the lazy dog")
+        val b: BlockMessage = BlockMessage.apply("The quick brown fox jumps over the lazy dog")
         b.blocks.length shouldBe 3
     }
 
     it should "toString" in {
-        val bm = BlockMessage(8, "A")
-        bm.toString shouldBe "41000000000000000000000000000000"
+        val bm = BlockMessage("A")(8)
+        bm.toString shouldBe "4100000000000000"
     }
 
     behavior of "BlockHash"
@@ -57,7 +57,7 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
     it should "hash" in {
         import crypto.BlockMessage.Xor
         val target: BlockHash = BlockHash((r, b) => r.xor(b), Block(new Array[Byte](16)))
-        val result: Block = target.hash(BlockMessage.apply(16, "The quick brown fox jumps over the lazy dog"))
+        val result: Block = target.hash(BlockMessage.apply("The quick brown fox jumps over the lazy dog"))
         result.toString shouldBe "5a623d6c7a7a7d337c6f6a040a054e54"
     }
 
