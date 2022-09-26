@@ -2,11 +2,6 @@ package crypto
 
 import scala.collection.mutable
 
-/**
- * CONSIDER defining Block as a case class. That would allow xor method to be found without import.
- */
-type Block = Array[Byte]
-
 type CompressionFunction = (Block, Block) => Block
 
 /**
@@ -20,6 +15,17 @@ trait Hash {
      * @return a Block.
      */
     def hash(message: BlockMessage): Block
+}
+
+case class Block(bytes: Array[Byte]) {
+    override def toString: String =
+        val sb = new mutable.StringBuilder()
+        bytes.foreach(byte => sb.append("%02x".format(byte)))
+        sb.toString
+}
+
+object Block {
+    def apply(bytes: Seq[Byte]): Block = Block(bytes.toArray)
 }
 
 /**
@@ -53,11 +59,16 @@ case class BlockMessage(blocks: Seq[Block]) {
      */
     def foldLeft[Z](z0: => Z)(f: (Z, Block) => Z): Z = blocks.foldLeft(z0)(f)
 
-    override def toString: String = {
+    /**
+     * Form a String for this BlockMessage by successively appending a String corresponding to each block,
+     * using the render method.
+     *
+     * @return
+     */
+    override def toString: String =
         val sb = new mutable.StringBuilder()
-        blocks.foreach(b => sb.append(BlockMessage.render(b)))
+        blocks.foreach(b => sb.append(b.toString))
         sb.toString
-    }
 }
 
 object BlockMessage {
@@ -68,8 +79,8 @@ object BlockMessage {
      * @param block  an array of bytes of any length.
      * @return a BlockMessage where each Block is of length nBytes.
      */
-    def apply(nBytes: Int, block: Block): BlockMessage =
-        BlockMessage(for (b <- block.grouped(nBytes)) yield pad(nBytes, b))
+    def apply(nBytes: Int, block: Array[Byte]): BlockMessage =
+        BlockMessage(for (b <- block.grouped(nBytes)) yield Block(pad(nBytes, b)))
 
     /**
      * Method to construct a BlockMessage from an iterator of Blocks.
@@ -98,7 +109,7 @@ object BlockMessage {
      * @param block  a Block which may need padding.
      * @return a Block which may be a new Block (if the input was short).
      */
-    def pad(nBytes: Int, block: Block): Block = if block.length == nBytes then block else {
+    def pad(nBytes: Int, block: Array[Byte]): Array[Byte] = if block.length == nBytes then block else {
         val result = new Array[Byte](nBytes)
         System.arraycopy(block, 0, result, 0, block.length)
         for (x <- block.length until nBytes) result(x) = padding
@@ -118,20 +129,8 @@ object BlockMessage {
          * @param other a Block.
          * @return
          */
-        infix def xor(other: Block): Block = for ((b1, b2) <- block zip other) yield xor(b1, b2)
+        infix def xor(other: Block): Block = Block(for ((b1, b2) <- block.bytes zip other.bytes) yield xor(b1, b2))
 
         private def xor(b1: Byte, b2: Byte) = (b1.toInt ^ b2.toInt).toByte
-    }
-
-    /**
-     * Method to render a Block as a String.
-     *
-     * @param b the Block to be rendered.
-     * @return a String.
-     */
-    def render(b: Block): String = {
-        val sb = new mutable.StringBuilder()
-        b.foreach(byte => sb.append("%02x".format(byte)))
-        sb.toString
     }
 }
