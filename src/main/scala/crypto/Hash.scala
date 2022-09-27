@@ -82,8 +82,6 @@ object Block {
         System.arraycopy(countArray, countArray.length - n, result, nBytes - n, n)
         Block(result)
     }
-
-
 }
 
 /**
