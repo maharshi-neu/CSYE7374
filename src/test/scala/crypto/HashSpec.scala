@@ -11,7 +11,7 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
     behavior of "Hash"
 
     it should "hash" in {
-        val iv: Block = Block(LazyList.continually(0xCC) map (_.toByte) take 16)
+        val iv: Block = Block.create(LazyList.continually(0xCC) map (_.toByte) take 16)
         val target = new Hash() {
             def hash(message: BlockMessage): Block = {
                 import crypto.BlockMessage.Xor
@@ -20,26 +20,37 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
                 message.foldLeft(iv)(compress)
             }
         }
-        target.hash(BlockMessage(new Array[Byte](16))).toString shouldBe "cccccccccccccccccccccccccccccccc"
-        target.hash(BlockMessage(iv.bytes)).toString shouldBe "00000000000000000000000000000000"
-        val xs: Block = Block(LazyList.continually(0xFF) map (_.toByte) take 16)
-        target.hash(BlockMessage(xs.bytes)).toString shouldBe "33333333333333333333333333333333"
+        //noinspection SpellCheckingInspection
+        target.hash(BlockMessage(new Array[Byte](15))).toString shouldBe "ccccccccccccccccccccccccccccccc3"
+        val msg1: Array[Byte] = (LazyList.continually(0xCC) map (_.toByte) take 15).toArray
+        target.hash(BlockMessage(msg1)).toString shouldBe "000000000000000000000000000000c3"
+        val msg2: Array[Byte] = (LazyList.continually(0xFF) map (_.toByte) take 15).toArray
+        target.hash(BlockMessage(msg2)).toString shouldBe "333333333333333333333333333333c3"
     }
 
     behavior of "BlockMessage"
 
     it should "pad1" in {
-        val block = new Array[Byte](8)
-        val result = BlockMessage.pad(block)(10)
-        result.length shouldBe 10
+        val block: Array[Byte] = Array.empty
+        val messageLength = 10
+        val result = Block.pad(messageLength)(block)
+        result.length shouldBe 16
+        result.bytes(15) shouldBe messageLength
     }
 
     it should "pad2" in {
         val block = "Hello World!".getBytes
-        val result = BlockMessage.pad(block)(20)
-        result.length shouldBe 20
-        result(0) shouldBe 'H'
-        result(19) shouldBe 0
+        val messageLength = block.length
+        val result: Block = Block.pad(messageLength)(block)
+        result.length shouldBe 16
+        result.bytes(0) shouldBe 'H'
+        result.bytes(15) shouldBe messageLength
+    }
+
+    it should "pad3" in {
+        val block = "Hello World!!!!!".getBytes
+        val messageLength = block.length
+        a[AssertionError] shouldBe thrownBy(Block.pad(messageLength)(block))
     }
 
     it should "apply" in {
@@ -49,7 +60,7 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
 
     it should "toString" in {
         val bm = BlockMessage("A")(8)
-        bm.toString shouldBe "4100000000000000"
+        bm.toString shouldBe "4100000000000001"
     }
 
     behavior of "BlockHash"
@@ -58,7 +69,7 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
         import crypto.BlockMessage.Xor
         val target: BlockHash = BlockHash((r, b) => r.xor(b), Block(new Array[Byte](16)))
         val result: Block = target.hash(BlockMessage.apply("The quick brown fox jumps over the lazy dog"))
-        result.toString shouldBe "5a623d6c7a7a7d337c6f6a040a054e54"
+        result.toString shouldBe "5a623d6c7a7a7d337c6f6a040a054e7f"
     }
 
 }

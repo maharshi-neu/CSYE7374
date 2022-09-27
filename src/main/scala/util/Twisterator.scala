@@ -8,10 +8,10 @@ package util
  * @tparam X the underlying type.
  * @return a new Iterator which a twisted tail.
  */
-case class Twisterator[X](twist: X => X)(iterator: Iterator[X]) extends Iterator[X] {
+case class Twisterator[X, Y](f: X => Y, twist: X => Y)(iterator: Iterator[X]) extends Iterator[Y] {
     def hasNext: Boolean = iterator.hasNext
 
-    def next(): X =
+    def next(): Y =
         val x = iterator.next()
-        if iterator.hasNext then x else twist(x)
+        if iterator.hasNext then f(x) else twist(x)
 }

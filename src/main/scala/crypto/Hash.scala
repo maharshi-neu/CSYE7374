@@ -1,6 +1,7 @@
 package crypto
 
 import scala.collection.mutable
+import util.Twisterator
 
 type CompressionFunction = (Block, Block) => Block
 
@@ -18,6 +19,8 @@ trait Hash {
 }
 
 case class Block(bytes: Array[Byte]) {
+    def length: Int = bytes.length
+
     override def toString: String =
         val sb = new mutable.StringBuilder()
         bytes.foreach(byte => sb.append("%02x".format(byte)))
@@ -32,18 +35,55 @@ object Block {
      */
     implicit val requiredLength: Int = 16
 
+    // NOTE: for now, countBytes is fixed.
+    val countBytes = 4 // XXX Maximum number of count bytes: sufficient for a message of length of over 2 billion bytes.
+
+    // NOTE: for now, padding is fixed.
+    val padding: Byte = 0.toByte
+
+    /**
+     * Method to construct a Block from an Array[Byte] which checking on its length.
+     * The length of the array is expected to match the (implicit) length (second parameter set).
+     *
+     * @param bytes  the array of bytes to make up the new Block.
+     * @param nBytes (implicit) the expected length of the sequence (bytes).
+     * @return a new Block.
+     */
+    def create(bytes: Array[Byte])(implicit nBytes: Int): Block = {
+        require(bytes.length == nBytes, s"Block.apply: required length: $nBytes, actual length: ${bytes.length}")
+        Block(bytes)
+    }
+
     /**
      * Method to construct a Block from a Seq[Byte].
      * The length of the sequence is expected to match the (implicit) length (second parameter set).
      *
      * @param bytes  the sequence of bytes to make up the new Block.
-     * @param length (implicit) the expected length of the sequence (bytes).
+     * @param nBytes (implicit) the expected length of the sequence (bytes).
      * @return a new Block.
      */
-    def apply(bytes: Seq[Byte])(implicit length: Int): Block = {
-        require(bytes.length == length, s"Block.apply: required length: $length, actual length: ${bytes.length}")
-        Block(bytes.toArray)
+    def create(bytes: Seq[Byte])(implicit nBytes: Int): Block = create(bytes.toArray)
+
+    /**
+     * Method which is applied ONLY to the last block of a message.
+     *
+     * @param count  the size of the original message: which is to be encoded into the resulting (last) Block.
+     * @param bytes  the sequence of bytes to make up the first part of the new Block. The remainder will be made up from padding and count.
+     * @param nBytes (implicit) the expected length of the sequence (bytes).
+     * @return a Block based with the final bytes of padding overwritten by the count.
+     */
+    def pad(count: Int)(bytes: Array[Byte])(implicit nBytes: Int): Block = {
+        val countArray: Array[Byte] = BigInt(count).toByteArray
+        val n = math.min(countBytes, countArray.length)
+        assert(bytes.length + n <= nBytes, s"pad: too many bytes: #bytes=${bytes.length}, n=$n, nBytes=$nBytes")
+        val result = new Array[Byte](nBytes)
+        System.arraycopy(bytes, 0, result, 0, bytes.length)
+        for (x <- bytes.length until nBytes) result(x) = padding
+        System.arraycopy(countArray, countArray.length - n, result, nBytes - n, n)
+        Block(result)
     }
+
+
 }
 
 /**
@@ -96,14 +136,11 @@ object BlockMessage {
     /**
      * Method to construct a BlockMessage from a Block (a byte array of any length).
      *
-     * @param block  an array of bytes of any length.
-     * @param nBytes (implicit) the number of bytes to be placed in each of the resulting blocks.
+     * @param message an array of Byte of any length.
+     * @param nBytes  (implicit) the number of bytes to be placed in each of the resulting blocks.
      * @return a BlockMessage where each Block is of length nBytes.
      */
-    def apply(block: Array[Byte])(implicit nBytes: Int): BlockMessage =
-        val length = block.length
-        val blocks: Iterator[Block] = for (b <- block.grouped(nBytes)) yield Block(pad(b))
-        BlockMessage(blocks)
+    def apply(message: Array[Byte])(implicit nBytes: Int): BlockMessage = BlockMessage(prepareBlocks(message))
 
     /**
      * Method to construct a BlockMessage from an iterator of Blocks.
@@ -122,23 +159,6 @@ object BlockMessage {
      */
     def apply(message: String)(implicit requiredLength: Int): BlockMessage = apply(message.getBytes())
 
-    // NOTE: for now, padding is fixed.
-    val padding: Byte = 0.toByte
-
-    /**
-     * Method to pad a Block which has insufficient length.
-     *
-     * @param block  a Block which may need padding.
-     * @param nBytes (implicit) the number of bytes required in the resulting Block.
-     * @return a Block which may be a new Block (if the input was short).
-     */
-    def pad(block: Array[Byte])(implicit nBytes: Int): Array[Byte] = if block.length == nBytes then block else {
-        val result = new Array[Byte](nBytes)
-        System.arraycopy(block, 0, result, 0, block.length)
-        for (x <- block.length until nBytes) result(x) = padding
-        result
-    }
-
     /**
      * Implicit class to enable the "xor" operator.
      *
@@ -155,5 +175,26 @@ object BlockMessage {
         infix def xor(other: Block): Block = Block(for ((b1, b2) <- block.bytes zip other.bytes) yield xor(b1, b2))
 
         private def xor(b1: Byte, b2: Byte) = (b1.toInt ^ b2.toInt).toByte
+    }
+
+    /**
+     * Method to prepare an iterator of Blocks which can form a BlockMessage from a message.
+     *
+     * @param message an array of Byte of any length.
+     * @param nBytes  (implicit) the number of bytes to be placed in each of the resulting blocks.
+     * @return an Iterator[Block].
+     */
+    private def prepareBlocks(message: Array[Byte])(implicit nBytes: Int): Iterator[Block] = {
+        val count = message.length
+        val bytes =
+            if (count % nBytes + Block.countBytes > nBytes) {
+                val extendedArray: Array[Byte] = new Array[Byte](count + Block.countBytes)
+                System.arraycopy(message, 0, extendedArray, 0, count)
+                extendedArray
+            }
+            else message
+        val byteArrays = for (b <- bytes.grouped(nBytes)) yield b
+        val create: Array[Byte] => Block = Block.create
+        Twisterator(create, Block.pad(count))(byteArrays)
     }
 }

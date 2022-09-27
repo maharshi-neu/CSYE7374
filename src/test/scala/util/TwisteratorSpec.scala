@@ -7,7 +7,7 @@ class TwisteratorSpec extends AnyFlatSpec with should.Matchers {
 
     behavior of "TwisteratorSpec"
 
-    val twister: Iterator[Int] => Twisterator[Int] = new Twisterator[Int](x => -x)(_)
+    val twister: Iterator[Int] => Twisterator[Int, Int] = new Twisterator[Int, Int](identity, x => -x)(_)
 
     it should "twist" in {
         val list = List(1, 2, 3)
