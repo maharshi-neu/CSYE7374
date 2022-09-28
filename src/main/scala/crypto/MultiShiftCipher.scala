@@ -4,8 +4,8 @@ import crypto.CaesarCipher.{doShift, preparePlainText}
 import crypto.Histogram
 import crypto.Histogram.{English, shiftedEnglishHistograms}
 import parse.EnglishParser
-import scala.util.{Random, Try}
 import scala.util.matching.Regex
+import scala.util.{Random, Try}
 
 /**
  * Case class to represent a Substitution cipher with multiple shifts.
