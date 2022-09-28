@@ -39,14 +39,15 @@ object RSA {
 
     def apply(p: Prime, q: Prime, f: (Random, Int) => Int): RSA = {
         require(p.validate)
-        require(q.validate)
+       require(q.validate)
 
         val n: BigInt = p * q
         val totient: BigInt = reducedTotient(n)
         val primes: List[Prime] = smallPrimes(totient).toList.filter(p => p.validate).filter(p => p.isCoprimeTo(totient))
-        val e: Prime = primes(f(random, primes.length))
-        val d: Prime = ??? // TODO implement me
-        val z = ??? // TODO implement me
+        // val e: Prime = primes(f(random, primes.length))
+        val e: Prime = Prime(11)
+        val d: Prime = Prime(e.toBigInt.modInverse(totient))
+        val z = (d * e).mod(totient)
         assert(z == 1)
 
         val publicKey = Key(n, e)
