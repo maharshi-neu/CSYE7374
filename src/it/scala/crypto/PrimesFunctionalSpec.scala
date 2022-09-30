@@ -2,7 +2,6 @@ package crypto
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
-
 import scala.language.postfixOps
 
 class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
@@ -19,10 +18,21 @@ class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
 
   // NOTE: This takes much too long.
   it should "validate" in {
-        (Prime.create("35742549198872617291353508656626642567") map (_.validate)) shouldBe Some(true)
+    (Prime.create("35742549198872617291353508656626642567") map (_.validate)) shouldBe Some(true)
   }
 
-  it should "create Mersenne prime" in {
+  it should "create Mersenne prime 1" in {
+    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(4) map (_.validate) shouldBe None
+    Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
+    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
+  }
+
+  it should "create Mersenne prime 2" in {
     Prime.createMersennePrime(8) map (_.validate) shouldBe None
     Prime.createMersennePrime(9) map (_.validate) shouldBe None
     Prime.createMersennePrime(10) map (_.validate) shouldBe Some(true)

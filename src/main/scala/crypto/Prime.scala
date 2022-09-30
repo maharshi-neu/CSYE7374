@@ -245,7 +245,7 @@ object Prime {
    * @param p another BigInt.
    * @return true if the gcd of x and p is 1.
    */
-  def coprime(x: BigInt, p: BigInt) = p.gcd(x) == 1
+  def coprime(x: BigInt, p: BigInt): Boolean = p.gcd(x) == 1
 
   /**
    * Method to yield the least common multiple of two numbers.
@@ -330,22 +330,22 @@ object Prime {
    * @return a Map of Prime -=> Int where the Int represents the number of times the factor is multiplied.
    */
   def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] =
-    def factorCount(n: BigInt, p: Prime): (Int, Prime) =
-      if (n % p.toBigInt != 0) (0, Prime(n))
+    def factorCount(n: BigInt, p: Prime): (Int, BigInt) =
+      if (n % p.toBigInt != 0) (0, n)
       else factorCount(n / p.toBigInt, p) match {
         case (c, d) => (c + 1, d)
       }
 
-    def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
-      if (n.toBigInt == 1) Map()
-      else if (n.isProbablePrime) Map(n -> 1)
+    @tailrec
+    def factorsR(result: Map[Prime, Int], x: BigInt, ps: LazyList[Prime]): Map[Prime, Int] =
+      if (x == 1) result
       else {
-        val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
-        val (count, dividend) = factorCount(n.toBigInt, nps.head)
-        Map(nps.head -> count) ++ factorsR(dividend, nps.tail)
+        val nps = ps.dropWhile(x % _.toBigInt != 0)
+        val (count, dividend) = factorCount(x, nps.head)
+        factorsR(result + (nps.head -> count), dividend, nps.tail)
       }
 
-    factorsR(Prime(x), allPrimes)
+    factorsR(Map(), x, allPrimes)
 
   val commaFormatter = new java.text.DecimalFormat("#,###")
 

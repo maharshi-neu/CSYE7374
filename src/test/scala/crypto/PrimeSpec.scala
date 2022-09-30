@@ -219,17 +219,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.mersenneNumber(17) shouldBe 2305843009213693951L
   }
 
-  it should "create Mersenne prime" in {
-    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(4) map (_.validate) shouldBe None
-    Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
-  }
-
   it should "get first 100 primes" in {
     val first100: Seq[Prime] = Primes.allPrimes.take(100).toList
     first100.last shouldBe Prime(541)

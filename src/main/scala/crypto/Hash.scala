@@ -29,7 +29,7 @@ case class Block(bytes: Array[Byte]) {
 
 object Block {
     /**
-     * Define the default block length (256 bits).
+     * Define the default block length (128 bits).
      *
      * Methods such as the apply method of this object (and others) can override the required length simply by passing in an explicit value for length.
      */
