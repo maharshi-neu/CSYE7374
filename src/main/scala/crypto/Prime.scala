@@ -626,8 +626,7 @@ object MillerRabin {
     var a_to_power: BigInt = a.modPow(d, n)
     if (a_to_power == 1) return true
     else for (_ <- 1 to s) {
-      if (a_to_power == n - 1) return true
-      else a_to_power = (a_to_power * a_to_power) % n
+      // TODO insert appropriate code here.
     }
     a_to_power == n - 1
 

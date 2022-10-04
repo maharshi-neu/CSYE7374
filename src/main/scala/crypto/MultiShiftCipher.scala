@@ -16,11 +16,11 @@ import scala.util.{Random, Try}
 case class MultiShiftCipher(shifts: Seq[Int]) extends Cipher {
   val keyLength: Int = shifts.length
 
-  def encrypt(w: CharSequence): CharSequence =
-    (for ((c, i) <- preparePlainText(w).zipWithIndex) yield doShift(c, shifts(i % keyLength))) mkString ""
+    def encrypt(w: CharSequence): CharSequence =
+        ??? // TODO implement me
 
-  def decrypt(w: CharSequence): CharSequence =
-    (for ((x, i) <- w.toString.zipWithIndex) yield doShift(x, -shifts(i % keyLength))) mkString ""
+    def decrypt(w: CharSequence): CharSequence =
+        ??? // TODO implement me
 }
 
 object MultiShiftCipher {
