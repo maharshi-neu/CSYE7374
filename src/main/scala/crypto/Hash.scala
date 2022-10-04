@@ -185,7 +185,7 @@ object BlockMessage {
     private def prepareBlocks(message: Array[Byte])(implicit nBytes: Int): Iterator[Block] = {
         val count = message.length
         val bytes =
-            if (count % nBytes + Block.countBytes > nBytes) {
+            if (count % nBytes == 0 || count % nBytes + Block.countBytes > nBytes) {
                 val extendedArray: Array[Byte] = new Array[Byte](count + Block.countBytes)
                 System.arraycopy(message, 0, extendedArray, 0, count)
                 extendedArray
