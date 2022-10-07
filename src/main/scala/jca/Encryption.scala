@@ -296,8 +296,8 @@ object EncryptionUTF8AES128GCM extends BaseHexEncryption[AES128GCM] {
   import tsec.cipher.symmetric.{IvGen, PlainText}
   import tsec.common.*
 
-  implicit val gcmStrategy: IvGen[IO, AES128GCM] = AES128GCM.defaultIvStrategy[IO]
-  implicit val cachedInstance: AADEncryptor[IO, AES128GCM, SecretKey] = AES128GCM.genEncryptor[IO] //Cache the implicit
+  implicit val gcmStrategy: IvGen[IO, AES128GCM] = ??? // TODO IMPLEMENT ME
+  implicit val cachedInstance: AADEncryptor[IO, AES128GCM, SecretKey] = ??? // TODO IMPLEMENT ME
 
 //  val random: Random = new Random()
 
@@ -306,13 +306,11 @@ object EncryptionUTF8AES128GCM extends BaseHexEncryption[AES128GCM] {
       for (key <- AES128GCM.buildKey[IO](rawKey.utf8Bytes)) yield key
     else throw new RuntimeException(s"buildKey: incorrect key size ${rawKey.length} (should be ${AES128GCM.keySizeBytes})")
 
-  def encrypt(key: SecretKey[AES128GCM])(plaintext: String): IO[symmetric.CipherText[AES128GCM]] =
-    AES128GCM.encrypt[IO](PlainText(plaintext.utf8Bytes), key)
+  def encrypt(key: SecretKey[AES128GCM])(plaintext: String): IO[symmetric.CipherText[AES128GCM]] = ??? // TODO IMPLEMENT ME
 
-  def decrypt(key: SecretKey[AES128GCM])(cipher: symmetric.CipherText[AES128GCM]): IO[String] =
-    for (z <- AES128GCM.decrypt[IO](cipher, key)) yield z.toUtf8String
+  def decrypt(key: SecretKey[AES128GCM])(cipher: symmetric.CipherText[AES128GCM]): IO[String] = ??? // TODO IMPLEMENT ME
 
-  def concat(cipher: symmetric.CipherText[AES128GCM]): IO[Array[Byte]] = IO(cipher.toConcatenated)
+  def concat(cipher: symmetric.CipherText[AES128GCM]): IO[Array[Byte]] = ??? // TODO IMPLEMENT ME
 
-  def bytesToCipherText(bytes: Array[Byte]): IO[symmetric.CipherText[AES128GCM]] = IO.fromEither(AES128GCM.ciphertextFromConcat(bytes))
+  def bytesToCipherText(bytes: Array[Byte]): IO[symmetric.CipherText[AES128GCM]] = ??? // TODO IMPLEMENT ME
 }
