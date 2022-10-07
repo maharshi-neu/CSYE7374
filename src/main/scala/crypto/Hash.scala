@@ -94,6 +94,9 @@ case class BlockHash(cf: CompressionFunction, iv: Block) extends Hash :
     /**
      * A method to hash the given BlockMessage.
      *
+     * CONSIDER take a look at Wiki page where block hash function takes a HashFunction,
+     * which in turn takes a CompressionFunction.
+     *
      * @param message a BlockMessage.
      * @return a Block returned by invoking foldLeft(iv)(cf) on the given message.
      */
@@ -128,8 +131,6 @@ case class BlockMessage(blocks: Seq[Block]) {
 }
 
 object BlockMessage {
-
-    import Block.requiredLength
 
     /**
      * Method to construct a BlockMessage from a Block (a byte array of any length).
