@@ -7,8 +7,14 @@ import java.util.function.Consumer
 import scala.concurrent.duration.*
 import tsec.common.*
 import tsec.hashing.CryptoHash
+import tsec.hashing.bouncy.Keccak256
 import tsec.hashing.jca.*
 
-val hashIo: IO[CryptoHash[SHA256]] = SHA256.hash[IO]("hiHello".utf8Bytes)
-val result: CryptoHash[SHA256] = hashIo.unsafeRunSync()
-for (byte <- result.bytes) println(byte)
+val hashIoJCA: IO[CryptoHash[SHA256]] = SHA256.hash[IO]("hiHello".utf8Bytes)
+val resultJCA: CryptoHash[SHA256] = hashIoJCA.unsafeRunSync()
+for (byte <- resultJCA.bytes) println(byte)
+
+val hashIoBC: IO[CryptoHash[Keccak256]] = tsec.hashing.bouncy.Keccak256.hash[IO]("hiHello".utf8Bytes)
+val resultBC: CryptoHash[Keccak256] = hashIoBC.unsafeRunSync()
+for (byte <- resultBC.bytes) println(byte)
+
