@@ -4,6 +4,7 @@ import crypto.Prime.{coprime, primeFactorMultiplicity, totient}
 import crypto.Primes.*
 import util.Benchmark
 
+import java.lang
 import java.math.BigInteger
 import java.util.function.Consumer
 import scala.annotation.{tailrec, targetName, unused}
@@ -330,23 +331,42 @@ object Prime {
    *
    * @return a Map of Prime -=> Int where the Int represents the number of times the factor is multiplied.
    */
-  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] =
-    def factorCount(n: BigInt, p: Prime): (Int, Prime) =
-      if (n % p.toBigInt != 0) (0, Prime(n))
-      else factorCount(n / p.toBigInt, p) match {
-        case (c, d) => (c + 1, d)
+  def primeFactorMultiplicity(x: BigInt): Map[Prime, Int] = {
+    /**
+     * Determine how many times p divides into n.
+     *
+     * @param p a prime which may be a divisor of n.
+     * @param x a (presumptive) composite number.
+     * @return a tuple of
+     */
+    def factorCount(p: Prime, x: BigInt): (Int, BigInt) = {
+      @tailrec
+      def inner(r: (Int, BigInt)): (Int, BigInt) = r match {
+        case (c, d) => if p.toBigInt |> d then inner(c + 1, d / p.toBigInt) else r
       }
 
-    def factorsR(n: Prime, ps: LazyList[Prime]): Map[Prime, Int] =
-      if (n.toBigInt == 1) Map()
-      else if (n.isProbablePrime) Map(n -> 1)
-      else {
-        val nps = ps.dropWhile(n.toBigInt % _.toBigInt != 0)
-        val (count, dividend) = factorCount(n.toBigInt, nps.head)
-        Map(nps.head -> count) ++ factorsR(dividend, nps.tail)
-      }
+      inner(0 -> x)
+    }
 
-    factorsR(Prime(x), allPrimes)
+    /**
+     * Tail-recursive method to get the prime factors of a composite number with their exponents.
+     *
+     * @param result the current version of the map.
+     * @param n      a composite number.
+     * @param ps     a list of candidate primes.
+     * @return a Map of primes with their non-zero exponents.
+     */
+    @tailrec
+    def factorsR(result: Map[Prime, Int], n: BigInt, ps: LazyList[Prime]): Map[Prime, Int] = (n, ps) match {
+      case (1, _) => result
+      case (m, h #:: t) =>
+        val (count, dividend) = factorCount(h, m)
+        factorsR(result + (h -> count), dividend, t)
+      case _ => throw new Exception("factorsR: logic error")
+    }
+
+    factorsR(Map(), x, allPrimes.filter(p => p.toBigInt |> x))
+  }
 
   val commaFormatter = new java.text.DecimalFormat("#,###")
 

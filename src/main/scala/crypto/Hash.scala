@@ -1,7 +1,8 @@
 package crypto
 
-import scala.collection.mutable
 import util.Twisterator
+
+import scala.collection.mutable
 
 type CompressionFunction = (Block, Block) => Block
 
@@ -29,7 +30,7 @@ case class Block(bytes: Array[Byte]) {
 
 object Block {
     /**
-     * Define the default block length (256 bits).
+     * Define the default block length (128 bits).
      *
      * Methods such as the apply method of this object (and others) can override the required length simply by passing in an explicit value for length.
      */
@@ -94,6 +95,9 @@ case class BlockHash(cf: CompressionFunction, iv: Block) extends Hash :
     /**
      * A method to hash the given BlockMessage.
      *
+     * CONSIDER take a look at Wiki page where block hash function takes a HashFunction,
+     * which in turn takes a CompressionFunction.
+     *
      * @param message a BlockMessage.
      * @return a Block returned by invoking foldLeft(iv)(cf) on the given message.
      */
@@ -128,8 +132,6 @@ case class BlockMessage(blocks: Seq[Block]) {
 }
 
 object BlockMessage {
-
-    import Block.requiredLength
 
     /**
      * Method to construct a BlockMessage from a Block (a byte array of any length).
@@ -185,7 +187,7 @@ object BlockMessage {
     private def prepareBlocks(message: Array[Byte])(implicit nBytes: Int): Iterator[Block] = {
         val count = message.length
         val bytes =
-            if (count % nBytes + Block.countBytes > nBytes) {
+            if (count % nBytes == 0 || count % nBytes + Block.countBytes > nBytes) {
                 val extendedArray: Array[Byte] = new Array[Byte](count + Block.countBytes)
                 System.arraycopy(message, 0, extendedArray, 0, count)
                 extendedArray

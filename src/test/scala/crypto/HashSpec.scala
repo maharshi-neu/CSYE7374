@@ -58,6 +58,20 @@ class HashSpec extends AnyFlatSpec with should.Matchers {
         b.blocks.length shouldBe 3
     }
 
+    it should "create new block for padding" in {
+        val b13: BlockMessage = BlockMessage.apply(new Array[Byte](13))
+        b13.blocks.length shouldBe 2
+        b13.blocks.map(_.length shouldBe Block.requiredLength)
+        b13.blocks.head.bytes shouldBe new Array[Byte](16)
+        b13.blocks.last.bytes shouldBe new Array[Byte](15) :+ 13
+
+        val b16: BlockMessage = BlockMessage.apply(new Array[Byte](16))
+        b16.blocks.length shouldBe 2
+        b16.blocks.map(_.length shouldBe Block.requiredLength)
+        b16.blocks.head.bytes shouldBe new Array[Byte](16)
+        b16.blocks.last.bytes shouldBe new Array[Byte](15) :+ 16
+    }
+
     it should "toString" in {
         val bm = BlockMessage("A")(8)
         bm.toString shouldBe "4100000000000001"

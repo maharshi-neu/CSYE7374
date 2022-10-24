@@ -4,6 +4,7 @@ import crypto.Prime.multiplicativeInverse
 import crypto.Primes.allPrimes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+
 import scala.language.postfixOps
 
 class PrimeSpec extends AnyFlatSpec with should.Matchers {
@@ -217,17 +218,6 @@ class PrimeSpec extends AnyFlatSpec with should.Matchers {
     Prime.mersenneNumber(15) shouldBe 9007199254740991L
     Prime.mersenneNumber(16) shouldBe 576460752303423487L
     Prime.mersenneNumber(17) shouldBe 2305843009213693951L
-  }
-
-  it should "create Mersenne prime" in {
-    Prime.createMersennePrime(0) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(1) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(2) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(3) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(4) map (_.validate) shouldBe None
-    Prime.createMersennePrime(5) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(6) map (_.validate) shouldBe Some(true)
-    Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
   }
 
   it should "get first 100 primes" in {

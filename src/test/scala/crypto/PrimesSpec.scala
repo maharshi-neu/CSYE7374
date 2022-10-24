@@ -66,11 +66,12 @@ class PrimesSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "implement primeFactorMultiplicity" in {
-    Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
-    Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
-    Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
-    Prime.primeFactorMultiplicity(663168016) shouldBe Map(Prime(2) -> 4, Prime(7) -> 1, Prime(5987) -> 1, Prime(43) -> 1, Prime(23) -> 1)
-    Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
+      Prime.primeFactorMultiplicity(23) shouldBe Map(Prime(23) -> 1)
+      Prime.primeFactorMultiplicity(70) shouldBe Map(Prime(2) -> 1, Prime(5) -> 1, Prime(7) -> 1)
+      Prime.primeFactorMultiplicity(827) shouldBe Map(Prime(827) -> 1)
+      Prime.primeFactorMultiplicity(70906) shouldBe Map(Prime(2) -> 1, Prime(11) -> 2, Prime(293) -> 1)
+      Prime.primeFactorMultiplicity(663168016) shouldBe Map(Prime(2) -> 4, Prime(7) -> 1, Prime(5987) -> 1, Prime(43) -> 1, Prime(23) -> 1)
+      Prime.primeFactorMultiplicity(7894609062L) shouldBe Map(Prime(2) -> 1, Prime(11411) -> 1, Prime(3) -> 1, Prime(67) -> 1, Prime(1721) -> 1)
   }
 
   it should "implement Lucas()" in {

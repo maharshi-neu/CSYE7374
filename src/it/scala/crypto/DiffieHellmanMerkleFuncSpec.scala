@@ -3,6 +3,8 @@ package crypto
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
+import scala.util.{Success, Try}
+
 class DiffieHellmanMerkleFuncSpec extends AnyFlatSpec with should.Matchers {
 
   behavior of "DiffieHellmanMerkle"
@@ -34,22 +36,25 @@ class DiffieHellmanMerkleFuncSpec extends AnyFlatSpec with should.Matchers {
   }
 
   it should "secret" in {
-    val target = DiffieHellmanMerkle(prime23, g)
-    target.secret(angelaKey, brianKey) shouldBe 18
-    target.secret(aliceKey, bobKey) shouldBe 2
+      val target = DiffieHellmanMerkle(prime23, g)
+      target.secret(angelaKey, brianKey) shouldBe Success(18)
+      target.secret(aliceKey, bobKey) shouldBe Success(2)
   }
 
   ignore should "encrypt" in {
-    val target = DiffieHellmanMerkle(prime23, g)
-    val secret = target.secret(aliceKey, bobKey)
-    target.encrypt(17)(secret) shouldBe 3
+      val target = DiffieHellmanMerkle(prime23, g)
+      val triedSecret: Try[BigInt] = target.secret(aliceKey, bobKey)
+      triedSecret.foreach { secret =>
+          target.encrypt(17)(secret) shouldBe 3
 
-    val ciphers = for (i <- 0 to 22) yield target.encrypt(i)(secret)
-    println(ciphers)
+
+          val ciphers = for (i <- 0 to 22) yield target.encrypt(i)(secret)
+          println(ciphers)
+      }
   }
 
   ignore should "decrypt" in {
     val target = DiffieHellmanMerkle(prime23, g)
-    target.decrypt(3)(target.secret(aliceKey, bobKey)) shouldBe 17
+      target.decrypt(3)(target.secret(aliceKey, bobKey).get) shouldBe 17
   }
 }
