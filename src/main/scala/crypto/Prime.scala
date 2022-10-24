@@ -2,12 +2,13 @@ package crypto
 
 import crypto.Prime.{coprime, primeFactorMultiplicity, totient}
 import crypto.Primes.*
+import util.Benchmark
+
 import java.math.BigInteger
 import java.util.function.Consumer
 import scala.annotation.{tailrec, targetName, unused}
 import scala.collection.SortedSet
 import scala.util.{Failure, Random, Success, Try}
-import util.Benchmark
 
 /**
  * Class to represent a (possible) prime number.
@@ -245,7 +246,7 @@ object Prime {
    * @param p another BigInt.
    * @return true if the gcd of x and p is 1.
    */
-  def coprime(x: BigInt, p: BigInt) = p.gcd(x) == 1
+  def coprime(x: BigInt, p: BigInt): Boolean = p.gcd(x) == 1
 
   /**
    * Method to yield the least common multiple of two numbers.
@@ -431,7 +432,15 @@ object Prime {
    * @return true if n is probably prime.
    */
   def isProbableOddPrime(p: BigInt): Boolean =
-    hundredPrimes.contains(Prime(p)) || (p <= 7 || !hasSmallFactor(p)) && !carmichael.contains(p) && MillerRabin.isProbablePrime(p)
+    isSmallPrime(p) || (p <= 7 || !hasSmallFactor(p)) && !carmichael.contains(p) && MillerRabin.isProbablePrime(p)
+
+  /**
+   * Method to determine if p is one of the first one hundred primes.
+   *
+   * @param p a candidate BigInt
+   * @return true if p is in hundredPrimes.
+   */
+  def isSmallPrime(p: BigInt): Boolean = hundredPrimes.contains(Prime(p))
 
   /**
    * Method to determine if n is a probable prime.
@@ -449,7 +458,7 @@ object Prime {
    * @return true if n is a Carmichael Number.
    */
   def isCarmichaelNumber(n: BigInt): Boolean =
-    carmichael.contains(n) || !hundredPrimes.contains(Prime(n)) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
+    carmichael.contains(n) || !isSmallPrime(n) && n != 1 && !(2 |> n) && carmichaelTheoremApplies(n)
 
   private def carmichaelTheoremApplies(n: BigInt) =
     val factors: Map[Prime, Int] = primeFactorMultiplicity(n)
