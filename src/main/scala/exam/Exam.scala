@@ -28,8 +28,8 @@ object Exam {
     def likelyPrime(n: BigInt): Boolean = /* XXX IMPLEMENT ME */ {
         val m = 5
         val nPrimes = hundredPrimes.count(_ < n)
-        val randomState: JavaRandomState[BigInt] = JavaRandomState(0L, BigInt(_) - Long.MinValue)
-        val candidates: Seq[BigInt] = randomState.toStream.map(x => x % nPrimes).take(m).to(List).map(x => hundredPrimes(x.toInt))
+        val randomState = RandomState.intRandomStateBoundedSeeded(nPrimes)(0L)
+        val candidates = randomState.lazyList.take(m).map(x => hundredPrimes(x))
         candidates.forall(a => satisfiesFermatsTest(a, n))
     }
     /* XXX END IMPLEMENTATION */

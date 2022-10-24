@@ -12,41 +12,37 @@ import scala.util.Random
  */
 trait RandomState[T] {
     /**
-     * @return the next random state in the pseudo-random series
+     * @return the next random state in the pseudo-random series.
      */
     def next: RandomState[T]
 
     /**
-     * @return the value of this random state
+     * @return the value of this random state.
      */
     def get: T
 
     /**
-     * Method to map this random state into another random state
+     * Method to map this random state into another random state.
      *
-     * @param f the function to map a T value into a U value
-     * @tparam U the underlying type of the resulting random state
-     * @return a new random state
+     * @param f the function to map a T value into a U value.
+     * @tparam U the underlying type of the resulting random state.
+     * @return a new random state.
      */
     def map[U](f: T => U): RandomState[U]
 
     /**
-     * Method to flatMap this random state into another random state
+     * Method to flatMap this random state into another random state.
      *
-     * @param f the function to map a T value into a RandomState[U] value
-     * @tparam U the underlying type of the resulting random state
-     * @return a new random state
+     * @param f the function to map a T value into a RandomState[U] value.
+     * @tparam U the underlying type of the resulting random state.
+     * @return a new random state.
      */
-    // Hint: Think of the input and output, find the appropriate method that achieve this.
-    // 10 points
-    def flatMap[U](f: T => RandomState[U]): RandomState[U] = /*SOLUTION*/ f(get) /*END*/
+    def flatMap[U](f: T => RandomState[U]): RandomState[U] = f(get)
 
     /**
-     * @return a stream of T values
+     * @return a LazyList of T values.
      */
-    // Hint: This a recursively method and it concatenate current element with following elements.
-    // 12 points
-    def toStream: LazyList[T] = /*SOLUTION*/ LazyList.cons[T](get, next.toStream) /*END*/
+    def lazyList: LazyList[T] = LazyList.cons[T](get, next.lazyList)
 }
 
 /**
@@ -56,22 +52,32 @@ trait RandomState[T] {
  * @param g the function which maps a Long value into a T
  * @tparam T the underlying type of this random state, i.e. the type of the result of calling get
  */
-case class JavaRandomState[T](n: Long, g: Long => T) extends RandomState[T] {
-    // Hint: Remember to use the "seed" to generate next RandomState.
-    // 7 points
-    def next: RandomState[T] = /*SOLUTION*/ JavaRandomState[T](new Random(n).nextLong(), g)
+case class RandomState_Java[T](n: Long)(g: Long => T) extends RandomState[T] {
+    def next: RandomState[T] = RandomState_Java[T](new Random(n).nextLong())(g)
 
-    /*END*/
-    // Hint: Think of the input and output.
-    // 5 points
-    def get: T = /*SOLUTION*/ g(n)
+    def get: T = g(n)
 
-    /*END*/
-    // Hint: This one need function composition.
-    // 13 points
-    def map[U](f: T => U): RandomState[U] = /*SOLUTION*/ JavaRandomState[U](n, g andThen f) /*END*/
+    def map[U](f: T => U): RandomState[U] = RandomState_Java[U](n)(g andThen f)
 }
 
-object JavaRandomState {
-    def apply[T](g: Long => T) = new JavaRandomState[T](System.currentTimeMillis(), g)
+object RandomState {
+    def applySeeded[T](n: Long)(g: Long => T): RandomState[T] = new RandomState_Java[T](new Random(n).nextLong())(g)
+
+    def apply[T](g: Long => T): RandomState[T] = applySeeded(System.currentTimeMillis())(g)
+
+    def intRandomStateBoundedSeeded(m: Int)(n: Long): RandomState[Int] = applySeeded[Int](n)(x => (x & 0x7FFFFFFF).toInt % m)
+
+    def intRandomStateBounded(m: Int): RandomState[Int] = intRandomStateBoundedSeeded(m)(System.currentTimeMillis())
+
+    def intRandomState(n: Long): RandomState[Int] = applySeeded[Int](n)(x => (x & 0xFFFFFFFF).toInt)
+
+    def intRandomState: RandomState[Int] = intRandomState(System.currentTimeMillis())
+
+    def longRandomState(n: Long): RandomState[Long] = applySeeded[Long](n)(identity)
+
+    def longRandomState: RandomState[Long] = longRandomState(System.currentTimeMillis())
+
+    def bigIntRandomState(n: Long): RandomState[BigInt] = applySeeded[BigInt](n)(x => BigInt(x))
+
+    def bigIntRandomState: RandomState[BigInt] = bigIntRandomState(System.currentTimeMillis())
 }
