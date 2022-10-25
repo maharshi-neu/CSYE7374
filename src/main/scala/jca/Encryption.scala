@@ -7,6 +7,7 @@ import scala.util.Random
 import tsec.cipher.symmetric
 import tsec.cipher.symmetric.AADEncryptor
 import tsec.cipher.symmetric.jca.{AES128CTR, AES128GCM, SecretKey}
+import util.Hex
 
 /**
  * Trait to deal with Encryption for Strings.
@@ -193,11 +194,7 @@ object HexEncryption {
    * @param bytes an Array[Byte].
    * @return an IO of String.
    */
-  def bytesToHexString(bytes: Array[Byte]): IO[String] = {
-    val sb = new StringBuilder
-    for (b <- bytes) yield sb.append(String.format("%02X", b))
-    IO(sb.toString())
-  }
+  def bytesToHexString(bytes: Array[Byte]): IO[String] = IO(Hex.bytesToHexString(bytes))
 
   /**
    * Decode the given String in hexadecimal as an array of Byte.
@@ -205,12 +202,7 @@ object HexEncryption {
    * @param hex the hex String.
    * @return Array[Byte].
    */
-  def hexStringToBytes(hex: String): IO[Array[Byte]] = {
-    // CONSIDER getting the byte array a different way that doesn't require the drop.
-    val q: Array[Byte] = BigInt(hex, 16).toByteArray
-    val bytes = if (q.length > hex.length / 2) q.drop(1) else q
-    IO(bytes)
-  }
+  def hexStringToBytes(hex: String): IO[Array[Byte]] = IO(Hex.hexStringToBytes(hex))
 
   /**
    * Method to decrypt a row consisting of an identifier and a Hex string.
