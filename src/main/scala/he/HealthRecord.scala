@@ -2,6 +2,7 @@ package he
 
 import java.time.LocalDate
 import java.util.Locale.IsoCountryCode
+import java.util.UUID
 
 /**
  * This is an example record to be encrypted using PHE.
@@ -17,12 +18,12 @@ import java.util.Locale.IsoCountryCode
  * @param nonIdentifyingData non-identifying data.
  * @tparam X the type of the non-identifying data.
  */
-case class HealthRecord[X](pii: PII, dob: LocalDate, maybeY: Option[Boolean], conditions: Set[Condition], nonIdentifyingData: X)
+case class HealthRecord[X](rowId: UUID, pii: PII, dob: LocalDate, maybeY: Option[Boolean], conditions: Set[Condition], nonPii: X) extends PHE_Record[X]
 
 /**
  * Case class to represent personally identifiable information.
  *
- * @param id
+ * @param id government ID which needs to be protected.
  * @param name
  * @param address
  */
