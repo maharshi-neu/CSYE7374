@@ -126,6 +126,8 @@ case class Prime(n: BigInt) extends AnyVal with Ordered[Prime] {
    *
    * NOTE: This is a very expensive operation as it essentially performs an E-sieve on the given prime.
    *
+   * XXX it seems to gotten slower since an earlier version as validating the Mersenne primes takes a long time.
+   *
    * @return true if this number is prime.
    */
   @unused

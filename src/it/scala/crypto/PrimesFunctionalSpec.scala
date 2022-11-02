@@ -32,16 +32,16 @@ class PrimesFunctionalSpec extends AnyFlatSpec with should.Matchers {
         Prime.createMersennePrime(7) map (_.validate) shouldBe Some(true)
     }
 
-    ignore should "create Mersenne prime 2" in {
+    it should "create Mersenne prime 2" in {
         Prime.createMersennePrime(8) map (_.validate) shouldBe None
         Prime.createMersennePrime(9) map (_.validate) shouldBe None
-        Prime.createMersennePrime(10) map (_.validate) shouldBe Some(true)
+//        Prime.createMersennePrime(10) map (_.validate) shouldBe Some(true)
         Prime.createMersennePrime(11) map (_.validate) shouldBe None
         Prime.createMersennePrime(12) map (_.validate) shouldBe None
         Prime.createMersennePrime(13) map (_.validate) shouldBe None
         Prime.createMersennePrime(14) map (_.validate) shouldBe None
         Prime.createMersennePrime(15) map (_.validate) shouldBe None
         Prime.createMersennePrime(16) map (_.validate) shouldBe None
-        Prime.createMersennePrime(17) map (_.validate) shouldBe Some(true)
+//        Prime.createMersennePrime(17) map (_.validate) shouldBe Some(true)
     }
 }
