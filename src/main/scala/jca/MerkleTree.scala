@@ -9,30 +9,44 @@ import tsec.hashing.CryptoHash
 import tsec.hashing.bouncy.Keccak256
 import tsec.hashing.jca.*
 
+trait Hashable[A, C] {
+    def hash(x: Array[Byte]): IO[C]
+
+    def bytes(c: C): Array[Byte]
+}
+
 /**
  * This class was originally contributed by Zhilue Wang (NiftyMule on github).
  */
-trait MerkleTree() {
-    def getHash: IO[CryptoHash[SHA256]]
+trait MerkleTree[C] {
+    def getHash: IO[C]
 }
 
-case class MerkleTreeNode(left: MerkleTree, right: MerkleTree) extends MerkleTree {
-    def getHash: IO[CryptoHash[SHA256]] = for {
+case class MerkleTreeNode[C, A](left: MerkleTree[C], right: MerkleTree[C])(implicit aCh: Hashable[A, C]) extends MerkleTree[C] {
+    def getHash: IO[C] = for {
         leftHash <- left.getHash
         rightHash <- right.getHash
-        hash <- SHA256.hash[IO](leftHash.bytes ++ rightHash.bytes)
+        hash <- aCh.hash(aCh.bytes(leftHash) ++ aCh.bytes(rightHash))
     } yield hash
 }
 
-case class MerkleTreeLeaf(content: String) extends MerkleTree {
-    def getHash: IO[CryptoHash[SHA256]] = SHA256.hash[IO](content.getBytes)
+case class MerkleTreeLeaf[C, A](content: String)(implicit aCh: Hashable[A, C]) extends MerkleTree[C] {
+    def getHash: IO[C] = aCh.hash(content.getBytes)
 }
 
 object MerkleTree {
-    def apply(seq: Seq[String]): MerkleTree = {
+    trait CryptoHashSHA256Hashable extends Hashable[SHA256, CryptoHash[SHA256]] {
+        def hash(x: Array[Byte]): IO[CryptoHash[SHA256]] = SHA256.hash[IO](x)
+
+        def bytes(c: CryptoHash[SHA256]): Array[Byte] = c.bytes
+    }
+
+    implicit object CryptoHashSHA256Hashable extends CryptoHashSHA256Hashable
+
+    def apply(seq: Seq[String]): MerkleTree[CryptoHash[SHA256]] = {
         @tailrec
-        def inner(seq: Seq[MerkleTree]): MerkleTree = {
-            val newSeq: Seq[MerkleTree] = seq.grouped(2).map(x => if x.length == 1 then x.head else MerkleTreeNode(x.head, x.last)).toSeq
+        def inner(seq: Seq[MerkleTree[CryptoHash[SHA256]]]): MerkleTree[CryptoHash[SHA256]] = {
+            val newSeq: Seq[MerkleTree[CryptoHash[SHA256]]] = seq.grouped(2).map(x => if x.length == 1 then x.head else MerkleTreeNode(x.head, x.last)).toSeq
             if newSeq.length > 1 then inner(newSeq) else newSeq.head
         }
 
@@ -59,14 +73,14 @@ object test extends App {
         "And I am two-and-twenty",
         "And oh tis true tis true"
     )
-    val tree: MerkleTree = MerkleTree(strings)
+    val tree: MerkleTree[CryptoHash[SHA256]] = MerkleTree(strings)
 
     tree.getHash.unsafeRunSync().bytes.foreach(x => print("%02X".format(x)))
     println()
 
 
     // block chain assignment
-    val assignmetTree = LazyList.continually(Seq(
+    val transactions = LazyList.continually(Seq(
         "00000dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
         "Harry pays Robin 1.000",
         "Maharshi pays Harry 1.000",
@@ -76,7 +90,7 @@ object test extends App {
 
     val start = System.nanoTime()
 //  Random.setSeed(22)
-    assignmetTree
+    transactions
             .map(list => list :+ Random.nextBytes(5).foldLeft("")((z: String, x: Byte) => z + "%02X".format(x))) // append nonce
             .find(x => {
                 val hashBytes = MerkleTree(x).getHash.unsafeRunSync().bytes
@@ -93,7 +107,7 @@ object test extends App {
     println("duration: " + elapsed + "ns")
 
     // validate
-    val tree2: MerkleTree = MerkleTree(assignmetTree.head :+ "C188EB411C")
+    val tree2: MerkleTree[CryptoHash[SHA256]] = MerkleTree(transactions.head :+ "C188EB411C")
     tree2.getHash.unsafeRunSync().bytes.foreach(x => print("%02X".format(x)))
     println()
 }
