@@ -35,7 +35,7 @@ class MerkleTreeSpec extends AnyFlatSpec with should.Matchers {
             "And I am two-and-twenty",
             "And oh tis true tis true"
         )
-        val tree: MerkleTree[CryptoHash[SHA256]] = MerkleTree(strings)
+        val tree: MerkleTree[CryptoHash[SHA256]] = MerkleTree(strings.map(_.getBytes()))
         val si = for (x <- tree.getHash; z <- HexEncryption.bytesToHexString(x.bytes)) yield z
         si.unsafeRunSync() shouldBe "B970CD10245D63690368F7EFEA1C0289115DF3A5310A119F53236FA248BAE0FA"
     }
