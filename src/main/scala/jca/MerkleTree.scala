@@ -3,6 +3,7 @@ package jca
 import cats.effect.std.Dispatcher
 import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO, Resource, Sync}
+import crypto.RandomState
 import jca.MerkleTree.Bytes
 import scala.annotation.tailrec
 import scala.util.Random
@@ -65,6 +66,13 @@ object MerkleTreeLeaf {
 object MerkleTree {
     type Bytes = Array[Byte]
 
+    /**
+     * Method to construct a MerkleTree from a sequence of byte arrays (typically corresponding to strings).
+     *
+     * @param seq a sequence of byte arrays.
+     * @tparam H the underlying hash type.
+     * @return a MerkleTree[H].
+     */
     def apply[H: Hashable](seq: Seq[Bytes]): MerkleTree[H] = {
         @tailrec
         def inner(seq: Seq[MerkleTree[H]]): MerkleTree[H] = {
@@ -75,22 +83,31 @@ object MerkleTree {
         inner(seq.map(MerkleTreeLeaf.apply))
     }
 
-    def mineMerkleTreeBlock(elements: Seq[String], priorBlockHash: Bytes): (Bytes, Bytes) = {
-        val nonceBytes = 5 // The number of bytes to be used for the nonce.
+    /**
+     * Method to "mine" a block such that its hash starts with 20 zero bits.
+     *
+     * @param elements       a sequence of Strings to be encoded as a Merkle Tree in this block.
+     * @param priorBlockHash the hash of the prior block.
+     * @param nBytesNonce    The number of bytes to be used for the nonce.
+     * @param randomState    an instance of RandomState.
+     * @tparam H the underlying hash type.
+     * @return a tuple of Array[Byte]: nonce and hash for first nonce that results in 20 zero bits.
+     */
+    def mineMerkleTreeBlock[H: Hashable](elements: Seq[String], priorBlockHash: Bytes, nBytesNonce: Int)(randomState: RandomState): (Bytes, Bytes) = {
+        val hh = implicitly[Hashable[H]]
 
         // Method to check if bytes begins with 20 bits.
         def checkBlockHash(bytes: Bytes): Boolean = bytes(0) == 0 && bytes(1) == 0 && (bytes(2) & 0xF0) == 0
 
         def rejectNonceWithHash(nwh: (Bytes, Bytes)): Boolean = !checkBlockHash(nwh._2)
 
-        def nonceAndHash(nonce: Bytes, tree: MerkleTree[CryptoHash[SHA256]]): (Bytes, Bytes) = nonce -> tree.getHash.unsafeRunSync()
+        def nonceAndHash(nonce: Bytes, tree: MerkleTree[H]): (Bytes, Bytes) = nonce -> hh.bytes(tree.getHash.unsafeRunSync())
 
         val block = priorBlockHash +: (elements map (_.getBytes))
-        val nonces = LazyList.continually(Random.nextBytes(nonceBytes))
-        val candidates = nonces map (nonce => nonce -> MerkleTree(block :+ nonce))
+        val nonces: LazyList[Bytes] = randomState.lazyList map (r => r.bytes(nBytesNonce))
+        val candidates: LazyList[(Bytes, MerkleTree[H])] = nonces map (nonce => nonce -> MerkleTree[H](block :+ nonce))
         (candidates map nonceAndHash dropWhile rejectNonceWithHash take 1).to(List).head
     }
-
 }
 
 object test extends App {
@@ -118,7 +135,6 @@ object test extends App {
     tree.getHash.unsafeRunSync().bytes.foreach(x => print("%02X".format(x)))
     println()
 
-
     // block chain assignment
     val transactions = Seq(
         "Harry pays Robin 1.000",
@@ -128,15 +144,11 @@ object test extends App {
     )
 
     val start = System.nanoTime()
-    Random.setSeed(22)
-    val (nonce, hash) = MerkleTree.mineMerkleTreeBlock(transactions, "00000dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824".getBytes())
+    val priorBlockHash = "00000dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824".getBytes()
+    val (nonce, hash) = MerkleTree.mineMerkleTreeBlock(transactions, priorBlockHash, 5)(RandomState(3L))
     val end = System.nanoTime()
     val elapsed = end - start
     println("duration: " + elapsed + "ns")
-
-    // validate
     println(util.Hex.bytesToHexString(nonce))
-//    val tree2: MerkleTree[CryptoHash[SHA256]] = MerkleTree(transactions.head :+ "C188EB411C")
-//    tree2.getHash.unsafeRunSync().bytes.foreach(x => print("%02X".format(x)))
-//    println()
+    println(util.Hex.bytesToHexString(hash))
 }
